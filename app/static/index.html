@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>업무 녹화 매크로 AI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="app">
+  <!-- 사이드바 -->
+  <aside class="side">
+    <div class="aurora"></div>
+    <div class="logo">
+      <div class="logo-mark">▶</div>
+      <div><b>업무 녹화</b><br><span>매크로 AI</span></div>
+    </div>
+    <nav class="nav" id="tabs">
+      <span class="nav-pill" id="nav-pill"></span>
+      <button data-tab="record"><i>🎬</i><span>녹화</span><em>1</em></button>
+      <button data-tab="analyze"><i>🧠</i><span>해석</span><em>2</em></button>
+      <button data-tab="manual"><i>📘</i><span>매뉴얼</span><em>3</em></button>
+      <button data-tab="run"><i>⚡</i><span>매크로 실행</span><em>4</em></button>
+      <button data-tab="eval"><i>📊</i><span>평가 결과</span><em>5</em></button>
+    </nav>
+    <div class="side-status">
+      <div class="stat-line" id="mock-chip">
+        <span class="dot"></span>
+        <span id="mock-text">가상 시스템 확인 중…</span>
+        <button class="ghost xs" id="mock-start" hidden>켜기</button>
+        <a class="ghost xs" id="mock-open" href="http://localhost:5000" target="_blank" hidden>열기 ↗</a>
+      </div>
+      <label class="stat-line switch" id="ai-chip">
+        <input type="checkbox" id="use-ai">
+        <span class="track"><span class="thumb"></span></span>
+        <span id="ai-text">AI 사용</span>
+      </label>
+    </div>
+  </aside>
+
+  <!-- 본문 -->
+  <div class="content">
+    <header class="page-head">
+      <div>
+        <p class="eyebrow" id="page-step">STEP 1</p>
+        <h1 id="page-title">녹화</h1>
+        <p class="lead" id="page-lead"></p>
+      </div>
+      <div class="toolbar" id="rec-toolbar" hidden>
+        <label>작업할 녹화<select id="rec-select"></select></label>
+        <label class="check"><input type="checkbox" id="hide-eval" checked> 평가용 숨기기</label>
+      </div>
+    </header>
+
+    <main>
+      <!-- ① 녹화 -->
+      <section class="tab" id="tab-record" data-step="STEP 1" data-title="녹화"
+        data-lead="업무를 브라우저에서 한 번 시연하며 녹화합니다. 녹화용 창에서 시연을 마치고 그 창을 닫으면 저장됩니다.">
+        <div class="card glow">
+          <div class="form-grid">
+            <label>녹화 이름<input id="rec-name" placeholder="예: 웹프로그래밍 게시판 댓글"></label>
+            <label>녹화할 시스템
+              <select id="rec-preset">
+                <option value="http://localhost:5000/portal/login">🎓 새솔대학교 통합포털 (가상)</option>
+                <option value="http://localhost:5000/login">📈 가나다증권 업무시스템 (가상)</option>
+                <option value="http://localhost:5000">🧭 가상 시스템 선택 화면</option>
+                <option value="custom">✏️ 주소 직접 입력</option>
+              </select>
+            </label>
+            <label class="span2">시작 주소<input id="rec-url" value="http://localhost:5000/portal/login"></label>
+          </div>
+          <p class="warn" id="url-warn" hidden>⚠ 가상 시스템이 아닌 주소입니다. 회사·학교 시스템이나 개인정보가 보이는 화면은 녹화하지 마세요. AI를 켜면 스크린샷이 외부(Gemini)로 전송됩니다.</p>
+          <div class="actions">
+            <button class="primary lg" id="rec-start"><span>●</span> 녹화 시작</button>
+            <span class="hint">녹화용 Chromium 창이 따로 열립니다</span>
+          </div>
+          <div class="job" id="rec-job" hidden>
+            <div class="job-head"><span class="badge" id="rec-badge"></span><span id="rec-msg"></span></div>
+            <div class="progress"><span></span></div>
+            <pre class="log" id="rec-log"></pre>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>녹화 목록</h2><button class="ghost sm" id="rec-refresh">↻ 새로고침</button></div>
+          <div class="table-wrap">
+            <table id="rec-table"><thead><tr>
+              <th>녹화</th><th class="num">이벤트</th><th>녹화 시각</th><th>진행 상태</th><th></th>
+            </tr></thead><tbody></tbody></table>
+          </div>
+          <p class="empty" id="rec-empty" hidden>아직 녹화가 없습니다. 위에서 첫 녹화를 시작해 보세요.</p>
+        </div>
+      </section>
+
+      <!-- ② 해석 -->
+      <section class="tab" id="tab-analyze" hidden data-step="STEP 2" data-title="해석"
+        data-lead="녹화를 사람이 읽는 단계로 해석하고, 다음 실행 때 바뀌는 값(변수)을 찾아 매크로를 만듭니다.">
+        <div class="card">
+          <div class="actions">
+            <button class="primary" id="btn-interpret">① 단계 해석</button>
+            <button class="primary" id="btn-macro">② 변수 인식 + 매크로 만들기</button>
+            <span class="hint" id="ana-hint"></span>
+          </div>
+          <div class="job" id="ana-job" hidden>
+            <div class="job-head"><span class="badge" id="ana-badge"></span><span id="ana-msg"></span></div>
+            <div class="progress"><span></span></div>
+            <pre class="log" id="ana-log"></pre>
+          </div>
+        </div>
+        <div class="split" id="steps-area" hidden>
+          <div class="card">
+            <div class="card-head"><h2 id="steps-title">단계</h2><span class="hint" id="steps-model"></span></div>
+            <div class="table-wrap">
+              <table id="steps-table" class="clickable"><thead><tr>
+                <th>#</th><th>동작</th><th>대상</th><th>값</th><th>설명</th><th></th>
+              </tr></thead><tbody></tbody></table>
+            </div>
+          </div>
+          <div class="card sticky shot-card">
+            <div class="card-head"><h2>스크린샷</h2><span class="hint">표에서 단계를 누르세요</span></div>
+            <p id="shot-caption" class="caption"></p>
+            <div class="shot-frame"><img id="shot-img" alt=""></div>
+          </div>
+        </div>
+        <div class="card" id="vars-area" hidden>
+          <h2>변수 <span class="hint">다음 실행 때 바꿀 수 있는 값</span></h2>
+          <div class="table-wrap">
+            <table id="vars-table"><thead><tr>
+              <th>이름</th><th>설명</th><th>녹화값</th><th>기본값 규칙</th><th>오늘 실행 시</th><th>단계</th>
+            </tr></thead><tbody></tbody></table>
+          </div>
+          <h3>고정값</h3>
+          <div class="table-wrap">
+            <table id="fixed-table"><thead><tr><th>단계</th><th>값</th><th>이유</th></tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ③ 매뉴얼 -->
+      <section class="tab" id="tab-manual" hidden data-step="STEP 3" data-title="매뉴얼"
+        data-lead="판단 기준 질문에 답하면, 그 내용까지 반영해 업무 매뉴얼을 만듭니다.">
+        <div class="card">
+          <div class="actions">
+            <button id="btn-questions">① 판단 기준 질문 만들기</button>
+            <button class="primary" id="btn-manual">② 매뉴얼 생성</button>
+            <a class="button ghost" id="manual-download" hidden>⬇ 마크다운 다운로드</a>
+            <span class="hint" id="man-hint"></span>
+          </div>
+          <div class="job" id="man-job" hidden>
+            <div class="job-head"><span class="badge" id="man-badge"></span><span id="man-msg"></span></div>
+            <div class="progress"><span></span></div>
+            <pre class="log" id="man-log"></pre>
+          </div>
+        </div>
+        <div class="card" id="qa-area" hidden>
+          <div class="card-head"><h2>판단 기준 질문</h2><span class="hint">모르는 것은 비워 두세요</span></div>
+          <form id="qa-form"></form>
+          <div class="actions"><button id="btn-save-answers">답변 저장</button><span class="hint" id="qa-saved"></span></div>
+        </div>
+        <article class="card manual" id="manual-view" hidden></article>
+      </section>
+
+      <!-- ④ 매크로 실행 -->
+      <section class="tab" id="tab-run" hidden data-step="STEP 4" data-title="매크로 실행"
+        data-lead="매크로를 고르고 변수 값을 확인한 뒤 실행합니다. 문제가 생기면 그 단계에서 멈추고 알려 줍니다.">
+        <div class="card">
+          <div class="form-grid">
+            <label class="span2">매크로<select id="macro-select"></select></label>
+          </div>
+          <label class="check"><input type="checkbox" id="hide-eval-macro" checked> 평가용 매크로 숨기기</label>
+          <p class="empty" id="macro-empty" hidden>매크로가 없습니다. ② 해석에서 매크로를 만드세요.</p>
+        </div>
+        <div id="macro-area" hidden>
+          <div class="grid-run">
+            <div class="card">
+              <h2>변수 값</h2>
+              <div class="var-grid" id="var-form"></div>
+            </div>
+            <div class="card">
+              <h2>실행 옵션</h2>
+              <label class="opt"><input type="checkbox" id="opt-checks" checked><span><b>실패 감지 (v4)</b><small>0건·오류·다른 페이지에서 멈춤</small></span></label>
+              <label class="opt"><input type="checkbox" id="opt-allow"><span><b>데이터 변경 단계 허용</b><small>저장·등록·출석 버튼까지 실행</small></span></label>
+              <label class="opt"><input type="checkbox" id="opt-headless"><span><b>브라우저 창 숨기기</b><small>화면 없이 빠르게 실행</small></span></label>
+              <p class="warn" id="change-warn" hidden>⚠ 데이터를 바꾸는 단계가 있습니다. 허용하지 않으면 그 단계 직전에 멈춥니다.</p>
+              <button class="primary lg block" id="btn-run">⚡ 실행</button>
+            </div>
+          </div>
+          <div class="card">
+            <h2>단계 확인</h2>
+            <div class="table-wrap">
+              <table id="macro-steps"><thead><tr><th>#</th><th>동작</th><th>설명</th><th>값</th><th></th></tr></thead><tbody></tbody></table>
+            </div>
+            <div class="job" id="run-job" hidden>
+              <div class="job-head"><span class="badge" id="run-badge"></span><span id="run-msg"></span></div>
+              <div class="progress"><span></span></div>
+              <pre class="log" id="run-log"></pre>
+            </div>
+          </div>
+          <div class="card" id="run-result" hidden></div>
+        </div>
+      </section>
+
+      <!-- ⑤ 평가 결과 -->
+      <section class="tab" id="tab-eval" hidden data-step="STEP 5" data-title="평가 결과"
+        data-lead="업무 10개 × 입력값 3세트로 v1(그대로 재생), v3(변수 매크로), v4(+실패 감지)의 재실행 성공률을 비교합니다.">
+        <div class="cards" id="eval-summary"></div>
+        <div class="card">
+          <div class="actions">
+            <button class="primary" id="btn-eval">▶ 평가 실행 (약 5분)</button>
+            <span class="hint">데이터 초기화 → 시나리오 자동 녹화 → 매크로 생성 → 평가 → 데이터 복원. 사이드바의 "AI 사용"을 따릅니다.</span>
+          </div>
+          <div class="job" id="eval-job" hidden>
+            <div class="job-head"><span class="badge" id="eval-badge"></span><span id="eval-msg"></span></div>
+            <div class="progress"><span></span></div>
+            <pre class="log" id="eval-log"></pre>
+          </div>
+        </div>
+        <div id="eval-reports"></div>
+      </section>
+    </main>
+    <footer>모든 업무 화면과 데이터는 교육용으로 지어낸 것입니다 · 관리 화면 http://localhost:8000</footer>
+  </div>
+</div>
+<div class="toasts" id="toasts"></div>
+<canvas id="confetti"></canvas>
+<script src="/static/app.js"></script>
+</body>
+</html>

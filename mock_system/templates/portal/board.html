@@ -1,0 +1,42 @@
+{% extends "portal/base.html" %}
+{% block title %}강의 게시판 - 새솔대학교 통합포털{% endblock %}
+{% block content %}
+<div class="p-page-head">
+  <h1>💬 강의 게시판</h1>
+  <p>과목별 공지와 과제 글을 확인하고 댓글을 남길 수 있습니다.</p>
+</div>
+
+<form class="p-card p-filter" id="board-filter" method="get" action="{{ url_for('portal.board') }}">
+  <div class="p-field">
+    <label for="board-course">과목</label>
+    <select id="board-course" name="course">
+      <option value="전체" {% if course == '전체' %}selected{% endif %}>전체</option>
+      {% for c in courses %}
+      <option value="{{ c.name }}" {% if course == c.name %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" id="board-search" class="p-btn p-btn-primary">조회</button>
+</form>
+
+<section class="p-card">
+  <p class="p-count" id="result-count">게시글 {{ posts|length }}건</p>
+  {% if posts %}
+  <table class="p-table p-board" id="post-table">
+    <thead><tr><th>과목</th><th>제목</th><th>작성자</th><th>날짜</th><th class="num">조회</th></tr></thead>
+    <tbody>
+      {% for p in posts %}
+      <tr>
+        <td><span class="p-chip">{{ p.course }}</span></td>
+        <td><a id="post-{{ p.id }}" href="{{ url_for('portal.post', post_id=p.id) }}">{{ p.title }}</a>
+          {% if p.n_comments %}<span class="p-ncomm">[{{ p.n_comments }}]</span>{% endif %}</td>
+        <td>{{ p.author }}</td><td>{{ p.created_at[:10] }}</td><td class="num">{{ p.views }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="p-empty" id="no-result">조회 결과가 없습니다.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}메인 메뉴 - 가나다증권 업무시스템{% endblock %}
+{% block content %}
+<h1>메인 메뉴</h1>
+<nav class="menu-grid" id="main-menu">
+  <a class="menu-item" id="menu-inspection-status" href="{{ url_for('inspection_status') }}">
+    <strong>위탁업체 점검 현황 조회</strong>
+    <span>기준일자·업체 구분·상태로 조회하고 CSV로 내려받습니다.</span>
+  </a>
+  <a class="menu-item" id="menu-daily-trades" href="{{ url_for('daily_trades') }}">
+    <strong>일별 거래 집계 조회</strong>
+    <span>기간·상품 구분으로 일별 거래 건수와 금액을 조회합니다.</span>
+  </a>
+  <a class="menu-item" id="menu-inspection-new" href="{{ url_for('inspection_new') }}">
+    <strong>점검 결과 등록</strong>
+    <span>위탁업체 점검 결과를 등록합니다.</span>
+  </a>
+</nav>
+{% endblock %}

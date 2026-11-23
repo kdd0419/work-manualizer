@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}위탁업체 점검 현황 조회 - 가나다증권 업무시스템{% endblock %}
+{% block content %}
+<h1>위탁업체 점검 현황 조회</h1>
+<form id="inspection-search-form" class="card search-form" method="get" action="{{ url_for('inspection_status') }}">
+  <div class="field">
+    <label for="inquiry-date">기준일자</label>
+    <input type="date" id="inquiry-date" name="inquiry_date" value="{{ inquiry_date }}">
+  </div>
+  <div class="field">
+    <label for="vendor-category">업체 구분</label>
+    <select id="vendor-category" name="vendor_category">
+      <option value="전체" {% if category == '전체' %}selected{% endif %}>전체</option>
+      {% for c in categories %}
+        <option value="{{ c }}" {% if category == c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="vendor-status">상태</label>
+    <select id="vendor-status" name="vendor_status">
+      <option value="전체" {% if status == '전체' %}selected{% endif %}>전체</option>
+      {% for s in statuses %}
+        <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" id="search-button" class="btn primary">조회</button>
+</form>
+
+{% if searched %}
+<section class="card">
+  <div class="result-head">
+    <span id="result-count">조회 결과 {{ rows|length }}건</span>
+    {% if rows %}
+    <a class="btn" id="download-csv"
+       href="{{ url_for('inspection_status_download', inquiry_date=inquiry_date, vendor_category=category, vendor_status=status) }}">엑셀 다운로드</a>
+    {% endif %}
+  </div>
+  {% if rows %}
+  <table id="result-table">
+    <thead><tr><th>업체코드</th><th>업체명</th><th>업체 구분</th><th>담당자</th><th>최근 점검일</th><th>상태</th><th>비고</th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>V{{ '%03d' % r.id }}</td><td>{{ r.name }}</td><td>{{ r.category }}</td><td>{{ r.manager }}</td>
+        <td>{{ r.last_date or '-' }}</td>
+        <td><span class="badge badge-{{ r.status|replace(' ', '') }}">{{ r.status }}</span></td>
+        <td>{{ r.last_note or '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty" id="no-result">조회 결과가 없습니다.</p>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

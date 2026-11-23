@@ -1,0 +1,48 @@
+{% extends "portal/base.html" %}
+{% block title %}홈 - 새솔대학교 통합포털{% endblock %}
+{% block content %}
+<div class="p-hello">
+  <h1>{{ session.student }} 님, 안녕하세요 👋</h1>
+  <p>오늘 출석할 수업과 새 게시글을 확인하세요.</p>
+</div>
+
+<div class="p-quick">
+  <a class="p-quick-card" id="menu-attendance" href="{{ url_for('portal.attendance') }}">
+    <span class="p-quick-icon">📍</span>
+    <strong>전자출석</strong>
+    <span>과목을 고르고 출석 코드를 입력합니다</span>
+  </a>
+  <a class="p-quick-card" id="menu-board" href="{{ url_for('portal.board') }}">
+    <span class="p-quick-icon">💬</span>
+    <strong>강의 게시판</strong>
+    <span>공지·과제 글을 보고 댓글을 남깁니다</span>
+  </a>
+</div>
+
+<div class="p-grid2">
+  <section class="p-card">
+    <h2>수강 과목</h2>
+    <table class="p-table" id="course-table">
+      <thead><tr><th>과목</th><th>교수</th><th>시간</th><th>오늘 출석</th></tr></thead>
+      <tbody>
+        {% for c in courses %}
+        <tr>
+          <td><b>{{ c.name }}</b><br><small>{{ c.code }} · {{ c.room }}</small></td>
+          <td>{{ c.professor }}</td><td>{{ c.schedule }}</td>
+          <td>{% if c.id in done %}<span class="p-badge p-badge-ok">출석 완료</span>{% else %}<span class="p-badge">미출석</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  <section class="p-card">
+    <h2>최근 게시글</h2>
+    <ul class="p-list">
+      {% for p in recent %}
+      <li><a href="{{ url_for('portal.post', post_id=p.id) }}"><span class="p-chip">{{ p.course }}</span>{{ p.title }}</a>
+        <small>{{ p.created_at[:10] }}</small></li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

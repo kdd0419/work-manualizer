@@ -1,0 +1,46 @@
+{% extends "portal/base.html" %}
+{% block title %}전자출석 - 새솔대학교 통합포털{% endblock %}
+{% block content %}
+<div class="p-page-head">
+  <h1>📍 전자출석</h1>
+  <p>수업 시간에 교수님이 알려 주신 출석 코드 4자리를 입력하세요. ({{ today }})</p>
+</div>
+
+<div class="p-grid2">
+  <form class="p-card" id="attendance-form" method="post" action="{{ url_for('portal.attendance') }}">
+    <h2>출석하기</h2>
+    <div class="p-field">
+      <label for="course-select">과목</label>
+      <select id="course-select" name="course_id">
+        <option value="">-- 과목 선택 --</option>
+        {% for c in courses %}
+        <option value="{{ c.id }}">{{ c.name }} ({{ c.professor }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="p-field">
+      <label for="attendance-code">출석 코드</label>
+      <input type="text" id="attendance-code" name="attendance_code" inputmode="numeric" maxlength="4"
+             placeholder="숫자 4자리" class="p-code" autocomplete="off">
+    </div>
+    <button type="submit" id="attendance-submit" class="p-btn p-btn-primary p-btn-block">출석</button>
+    <p class="p-hint">가상 시스템: 아무 숫자 4자리나 통과합니다. 같은 과목은 하루에 한 번만 출석할 수 있습니다.</p>
+  </form>
+
+  <section class="p-card">
+    <h2>내 출석 기록</h2>
+    {% if history %}
+    <table class="p-table" id="attendance-history">
+      <thead><tr><th>날짜</th><th>시각</th><th>과목</th></tr></thead>
+      <tbody>
+        {% for h in history %}
+        <tr><td>{{ h.att_date }}</td><td>{{ h.att_time }}</td><td>{{ h.name }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="p-empty" id="no-history">아직 출석 기록이 없습니다.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

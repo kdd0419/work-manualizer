@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}점검 결과 등록 - 가나다증권 업무시스템{% endblock %}
+{% block content %}
+<h1>점검 결과 등록</h1>
+<form id="inspection-form" class="card form-vertical" method="post" action="{{ url_for('inspection_new') }}">
+  <div class="field">
+    <label for="vendor-select">업체</label>
+    <select id="vendor-select" name="vendor_id">
+      <option value="">-- 업체 선택 --</option>
+      {% for v in vendors %}
+        <option value="{{ v.id }}" {% if form.vendor_id|string == v.id|string %}selected{% endif %}>{{ v.name }} ({{ v.category }})</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="inspection-date">점검일</label>
+    <input type="date" id="inspection-date" name="inspection_date" value="{{ form.inspection_date or '' }}">
+  </div>
+  <fieldset class="field">
+    <legend>점검 결과</legend>
+    {% for r in results %}
+      {% set rid = 'result-' ~ loop.index %}
+      <label class="radio" for="{{ rid }}">
+        <input type="radio" id="{{ rid }}" name="inspection_result" value="{{ r }}" {% if form.inspection_result == r %}checked{% endif %}>
+        {{ r }}
+      </label>
+    {% endfor %}
+  </fieldset>
+  <div class="field">
+    <label for="inspection-note">비고</label>
+    <textarea id="inspection-note" name="note" rows="3">{{ form.note or '' }}</textarea>
+  </div>
+  <button type="submit" id="save-button" class="btn primary">저장</button>
+</form>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}일별 거래 집계 조회 - 가나다증권 업무시스템{% endblock %}
+{% block content %}
+<h1>일별 거래 집계 조회</h1>
+<form id="trade-search-form" class="card search-form" method="get" action="{{ url_for('daily_trades') }}">
+  <div class="field">
+    <label for="start-date">시작일</label>
+    <input type="date" id="start-date" name="start_date" value="{{ start_date }}">
+  </div>
+  <div class="field">
+    <label for="end-date">종료일</label>
+    <input type="date" id="end-date" name="end_date" value="{{ end_date }}">
+  </div>
+  <div class="field">
+    <label for="product-type">상품 구분</label>
+    <select id="product-type" name="product_type">
+      <option value="전체" {% if product == '전체' %}selected{% endif %}>전체</option>
+      {% for p in products %}
+        <option value="{{ p }}" {% if product == p %}selected{% endif %}>{{ p }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" id="search-button" class="btn primary">조회</button>
+</form>
+
+{% if error %}
+  <div class="alert alert-error" id="error-message" role="alert">{{ error }}</div>
+{% elif searched %}
+<section class="card">
+  <div class="result-head">
+    <span id="result-count">조회 결과 {{ rows|length }}건 · 총 {{ '{:,}'.format(totals.count) }}건 · {{ '{:,}'.format(totals.amount) }}원</span>
+    {% if rows %}
+    <a class="btn" id="download-csv"
+       href="{{ url_for('daily_trades_download', start_date=start_date, end_date=end_date, product_type=product) }}">엑셀 다운로드</a>
+    {% endif %}
+  </div>
+  {% if rows %}
+  <table id="result-table">
+    <thead><tr><th>거래일자</th><th>상품 구분</th><th class="num">거래 건수</th><th class="num">거래 금액(원)</th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.trade_date }}</td><td>{{ r.product }}</td>
+        <td class="num">{{ '{:,}'.format(r.trade_count) }}</td>
+        <td class="num">{{ '{:,}'.format(r.amount) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty" id="no-result">조회 결과가 없습니다.</p>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

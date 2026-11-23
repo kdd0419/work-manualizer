@@ -1,0 +1,87 @@
+/* 가나다증권 본부 업무시스템 (가상) — 녹화 스크린샷이 흐려지지 않도록 화면 진입 애니메이션은 쓰지 않는다 */
+:root {
+  --brand: #1e3a8a; --brand-2: #3b5bdb; --ink: #0f1d45; --weak: #eaf0ff;
+  --bg: #f3f5fa; --card: #fff; --text: #1b2333; --muted: #697386; --line: #e1e6ef;
+  --ok: #157a3c; --ok-bg: #e6f5ec; --bad: #b42318; --bad-bg: #fdeceb; --warn: #8a5a00; --warn-bg: #fff4dc;
+  --shadow: 0 1px 2px rgba(16,24,40,.04), 0 4px 14px rgba(16,24,40,.06);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.6 "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
+
+.topbar { display: flex; justify-content: space-between; align-items: center; height: 60px; padding: 0 28px;
+  background: linear-gradient(110deg, var(--ink), var(--brand) 70%, var(--brand-2)); color: #fff;
+  box-shadow: 0 2px 12px rgba(30,58,138,.25); }
+.topbar a { color: #fff; text-decoration: none; }
+.brand { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 10px; }
+.brand::before { content: "가"; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px;
+  background: #fff; color: var(--brand); font-weight: 800; }
+.brand small { font-weight: 500; font-size: 11px; padding: 1px 7px; border-radius: 8px; background: rgba(255,255,255,.18); }
+.user { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.user a { margin-left: 10px; opacity: .8; padding: 5px 10px; border-radius: 7px; transition: background .15s; }
+.user a:hover { background: rgba(255,255,255,.15); opacity: 1; }
+
+.container { max-width: 1120px; margin: 28px auto; padding: 0 24px; }
+h1 { font-size: 22px; margin: 0 0 18px; letter-spacing: -.02em; display: flex; align-items: center; gap: 10px; }
+h1::before { content: ""; width: 5px; height: 22px; border-radius: 3px; background: linear-gradient(var(--brand-2), var(--brand)); }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 18px; box-shadow: var(--shadow); }
+.login-card { max-width: 400px; margin: 70px auto; padding: 32px; }
+.login-card h1::before { display: none; }
+
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.field label, legend { font-weight: 600; color: #3a4252; font-size: 13px; }
+fieldset.field { border: none; padding: 0; margin-left: 0; }
+.radio { font-weight: 500 !important; display: inline-flex !important; align-items: center; gap: 6px; margin-right: 18px;
+  padding: 7px 12px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; transition: border-color .15s, background .15s; }
+.radio:hover { border-color: var(--brand-2); background: #f7f9ff; }
+input[type=text], input[type=password], input[type=date], select, textarea {
+  font: inherit; padding: 9px 12px; border: 1px solid #cbd3e1; border-radius: 8px; min-width: 190px; background: #fff;
+  transition: border-color .15s, box-shadow .15s; }
+input[type=text], input[type=password], input[type=date], select { height: 40px; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--brand-2); box-shadow: 0 0 0 4px rgba(59,91,219,.14); }
+.search-form { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+.search-form .field { margin-bottom: 0; }
+.form-vertical { max-width: 560px; }
+
+.btn { display: inline-block; padding: 9px 20px; border: 1px solid var(--brand); border-radius: 8px; background: #fff;
+  color: var(--brand); cursor: pointer; font: inherit; font-weight: 600; text-decoration: none;
+  transition: box-shadow .15s, transform .1s, background .15s; }
+.btn:hover { box-shadow: 0 6px 16px rgba(30,58,138,.18); background: #f7f9ff; }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; border: 0; }
+.btn.primary:hover { filter: brightness(1.06); }
+.hint { color: var(--muted); font-size: 12px; }
+
+.result-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 600; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+th { background: #f6f8fc; color: #4a5368; font-weight: 600; font-size: 13px; }
+tbody tr { transition: background .12s; }
+tbody tr:hover { background: #f8faff; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.empty { color: var(--muted); text-align: center; padding: 28px; }
+
+.alert { padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.alert-success { background: var(--ok-bg); border: 1px solid #b6e0c4; color: var(--ok); }
+.alert-success::before { content: "✓"; }
+.alert-error { background: var(--bad-bg); border: 1px solid #f3b8b2; color: var(--bad); }
+.alert-error::before { content: "!"; }
+
+.badge { padding: 3px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; background: #eef0f4; white-space: nowrap; }
+.badge-적합 { background: var(--ok-bg); color: var(--ok); }
+.badge-보완필요 { background: var(--warn-bg); color: var(--warn); }
+.badge-부적합 { background: var(--bad-bg); color: var(--bad); }
+.badge-미점검 { background: #eceff3; color: #555; }
+
+.menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+.menu-item { display: flex; flex-direction: column; gap: 6px; padding: 24px; background: #fff; border: 1px solid var(--line);
+  border-radius: 14px; color: inherit; text-decoration: none; box-shadow: var(--shadow);
+  transition: transform .18s, box-shadow .18s, border-color .18s; position: relative; overflow: hidden; }
+.menu-item::after { content: "→"; position: absolute; right: 22px; top: 22px; color: var(--brand-2); transition: transform .18s; }
+.menu-item:hover { transform: translateY(-3px); border-color: var(--brand-2); box-shadow: 0 12px 26px rgba(30,58,138,.13); }
+.menu-item:hover::after { transform: translateX(4px); }
+.menu-item strong { font-size: 17px; }
+.menu-item span { color: var(--muted); }
+
+.footer { text-align: center; color: #98a0ae; font-size: 12px; padding: 24px; }
