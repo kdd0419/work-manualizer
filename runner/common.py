@@ -22,6 +22,10 @@ STOP_REASONS = {
     "download_missing": "다운로드가 일어나지 않았습니다.",
     "user_declined": "사용자가 실행을 취소했습니다.",
     "action_failed": "동작 실행 중 오류가 났습니다.",
+    "file_missing": "작업할 파일을 찾지 못했습니다. 파일 경로를 확인하세요.",
+    "structure_mismatch": "엑셀 파일 형식(시트·머리글)이 녹화 때와 다릅니다. 같은 양식의 파일인지 확인하세요.",
+    "excel_not_found": "엑셀 파일에서 대상(시트·열·행)을 찾지 못했습니다.",
+    "formula_error": "수식 결과에 오류(#DIV/0!, #VALUE! 등)가 생겼습니다.",
 }
 HUMAN_HANDOFF = "자동 실행을 멈췄습니다. 이 단계부터는 사람이 직접 처리하세요."
 

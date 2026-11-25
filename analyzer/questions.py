@@ -16,6 +16,8 @@ MIN_Q, MAX_Q = 2, 5
 def _rule_based(steps: list[dict]) -> list[dict]:
     """AI 없이 만드는 기본 질문."""
     qs = []
+    if any(s.get("excel") for s in steps):
+        return _rule_based_excel(steps)
     for s in steps:
         if s["action"] == "선택":
             qs.append({"kind": "판단 기준", "question": f"'{s['target']}'에서 '{s['value']}'을(를) 고른 기준은 무엇인가요?",
@@ -27,6 +29,26 @@ def _rule_based(steps: list[dict]) -> list[dict]:
         qs.append({"kind": "예외 상황", "question": "저장한 내용이 잘못되었으면 어떻게 바로잡나요?",
                    "why": "데이터 변경 단계의 되돌리기 방법", "related_steps": []})
     qs.append({"kind": "판단 기준", "question": "이 업무는 언제(주기·시점) 하고, 결과물은 어디에 쓰나요?",
+               "why": "업무 목적과 시점 확인", "related_steps": []})
+    return qs
+
+
+def _rule_based_excel(steps: list[dict]) -> list[dict]:
+    """엑셀 업무용 기본 질문: 거른 조건·채운 값의 기준, 결과 0행일 때."""
+    qs = []
+    for s in steps:
+        a, t, v = s["action"], s["target"].replace(" 열", ""), s["value"]
+        if a in ("필터", "행 삭제") and v:
+            what = "남긴" if a == "필터" else "지운"
+            qs.append({"kind": "판단 기준", "question": f"'{t}'이(가) '{v}'인 행을 {what} 기준은 무엇인가요? 다른 값도 포함해야 하는 때가 있나요?",
+                       "why": "조건 값이 바뀌는 경우를 알아야 다음 달에도 같은 판단을 할 수 있음", "related_steps": [s["step"]]})
+        elif a in ("열 채우기", "값 입력") and v and not str(v).startswith("="):
+            qs.append({"kind": "판단 기준", "question": f"'{t}'에 '{v}'을(를) 넣는 기준은 무엇인가요? (사람·상황에 따라 바뀌나요?)",
+                       "why": "입력값이 고정인지, 그때그때 바뀌는지 확인", "related_steps": [s["step"]]})
+    if any(s["action"] in ("필터", "행 삭제") for s in steps):
+        qs.append({"kind": "예외 상황", "question": "조건에 맞는 행이 하나도 없으면 어떻게 하나요? (보고 생략, '해당 없음' 보고 등)",
+                   "why": "결과 0행일 때의 처리 방법", "related_steps": []})
+    qs.append({"kind": "판단 기준", "question": "이 엑셀 작업은 언제(주기·시점) 하고, 결과 파일은 누구에게 보내나요?",
                "why": "업무 목적과 시점 확인", "related_steps": []})
     return qs
 

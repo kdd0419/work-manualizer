@@ -116,6 +116,9 @@ def run_macro(macro_path: str | Path, values: dict[str, str], headless: bool = F
     confirm: 데이터 변경 단계 직전에 호출 (True면 실행). 없으면 allow_changes 값을 따른다.
     """
     macro = load_macro(macro_path)
+    if macro.get("kind") == "excel":   # 엑셀 매크로는 Excel을 직접 조작하는 실행기로
+        from .excel_macro import run_excel_macro
+        return run_excel_macro(macro, macro_path, values, render, headless=headless, checks=checks, log=log)
     run_dir = new_run_dir(macro["id"])
     result = new_result("macro", str(macro_path), run_dir)
     result["version"] = "v4" if checks else "v3"

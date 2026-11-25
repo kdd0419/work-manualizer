@@ -151,6 +151,9 @@ def interpret(rec: str | Path, use_ai: bool = True, prompt_version: str = "v1",
     """녹화를 해석해 steps.json을 만들고 경로를 돌려준다."""
     rec_dir = resolve_recording(rec)
     data = read_json(rec_dir / "events.json")
+    if data.get("kind") == "excel":   # 엑셀 녹화는 전용 해석기로
+        from .excel_interpret import interpret_excel
+        return interpret_excel(rec_dir, data, use_ai, prompt_version, log)
     cands = prefilter(data["events"])
     log(f"이벤트 {len(data['events'])}개 → 해석 대상 {len(cands)}개")
 

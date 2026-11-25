@@ -26,8 +26,17 @@ def _clean_name(name: str, used: set[str]) -> str:
     return name
 
 
+def _is_input(step: dict) -> bool:
+    """변수가 될 수 있는 단계: 웹의 입력·선택, 엑셀의 파일·필터값·채울 값 등 (해석기가 variable_ok 표시)."""
+    return step["action"] in INPUT_ACTIONS or bool(step.get("variable_ok"))
+
+
+def _is_file(step: dict) -> bool:
+    return step["action"] == "파일 열기"
+
+
 def _is_password(step: dict) -> bool:
-    return step["locator"].get("input_type") == "password" or step.get("value") == "***"
+    return step.get("locator", {}).get("input_type") == "password" or step.get("value") == "***"
 
 
 def _is_login_page(step: dict) -> bool:
@@ -38,7 +47,12 @@ def _rule_based(steps: list[dict], recorded_on: date) -> dict:
     """AI 없이: 날짜는 날짜 규칙, 비밀번호는 직접 입력, 로그인 아이디는 고정, 나머지는 '녹화값 기본'."""
     variables, fixed = [], []
     for s in steps:
-        if s["action"] not in INPUT_ACTIONS:
+        if not _is_input(s):
+            continue
+        if _is_file(s):
+            variables.append({"name": s.get("var_name") or "입력파일", "type": "file",
+                              "description": "작업할 엑셀 파일 (다른 달 파일로 바꿔 실행할 수 있음)",
+                              "recorded_value": s["value"], "default_rule": "recorded", "steps": [s["step"]]})
             continue
         if _is_password(s):
             rule, desc = "직접 입력", "로그인 비밀번호"
@@ -48,7 +62,7 @@ def _rule_based(steps: list[dict], recorded_on: date) -> dict:
         else:
             rule = guess_rule(s["value"], recorded_on) or "recorded"
             desc = f"{s['target']} 값"
-        variables.append({"name": s["target"], "description": desc, "recorded_value": s["value"],
+        variables.append({"name": s.get("var_name") or s["target"], "description": desc, "recorded_value": s["value"],
                           "default_rule": rule, "steps": [s["step"]]})
     return {"variables": variables, "fixed": fixed}
 
@@ -58,8 +72,8 @@ def _ask_ai(data: dict, steps: list[dict], recorded_on: date, prompt_version: st
     from .llm_client import generate_json
 
     view = [{"step": s["step"], "action": s["action"], "target": s["target"], "value": s["value"],
-             "input_type": s["locator"].get("input_type", ""), "description": s["description"],
-             "page": s.get("page_url", "")} for s in steps if s["action"] in INPUT_ACTIONS]
+             "input_type": s.get("locator", {}).get("input_type", ""), "description": s["description"],
+             "page": s.get("page_url", "")} for s in steps if _is_input(s)]
     prompt = fill_prompt(load_prompt("variables", prompt_version),
                          RECORDING_NAME=data.get("recording_name", ""),
                          RECORDED_DATE=recorded_on.isoformat(), STEPS=view)
@@ -69,7 +83,7 @@ def _ask_ai(data: dict, steps: list[dict], recorded_on: date, prompt_version: st
 
 def validate(raw: dict, steps: list[dict], recorded_on: date) -> dict:
     """AI 결과를 검증·보정한다. 빠진 입력 단계는 규칙 기반으로 채운다."""
-    by_no = {s["step"]: s for s in steps if s["action"] in INPUT_ACTIONS}
+    by_no = {s["step"]: s for s in steps if _is_input(s)}
     used_names: set[str] = set()
     claimed: set[int] = set()
     variables, fixed = [], []
@@ -83,23 +97,28 @@ def validate(raw: dict, steps: list[dict], recorded_on: date) -> dict:
         claimed.update(nos)
         first = by_no[nos[0]]
         rule = str(v.get("default_rule", "")).strip()
+        if any(_is_file(by_no[n]) for n in nos) and len(nos) > 1:
+            nos = [n for n in nos if _is_file(by_no[n])]   # 파일 변수에 다른 단계를 섞지 않음
         if any(_is_password(by_no[n]) for n in nos):
             rule = "직접 입력"
-        elif not is_valid_rule(rule):
-            rule = guess_rule(first["value"], recorded_on) or "recorded"
-        variables.append({
-            "name": _clean_name(v.get("name") or first["target"], used_names),
+        elif _is_file(first) or not is_valid_rule(rule):
+            rule = "recorded" if _is_file(first) else (guess_rule(first["value"], recorded_on) or "recorded")
+        var = {
+            "name": _clean_name(v.get("name") or first.get("var_name") or first["target"], used_names),
             "description": str(v.get("description", "")),
             "recorded_value": first["value"],          # 녹화값은 AI가 아니라 기록에서 가져온다
             "default_rule": rule,
             "steps": nos,
-        })
+        }
+        if _is_file(first):
+            var["type"] = "file"
+        variables.append(var)
 
     for f in raw.get("fixed", []) or []:
         if isinstance(f, dict) and f.get("step") in by_no and f["step"] not in claimed:
             s = by_no[f["step"]]
-            if _is_password(s):
-                continue   # 비밀번호는 고정값이 될 수 없음 → 아래에서 변수로 채움
+            if _is_password(s) or _is_file(s):
+                continue   # 비밀번호·입력 파일은 고정값이 될 수 없음 → 아래에서 변수로 채움
             claimed.add(f["step"])
             fixed.append({"step": f["step"], "value": s["value"], "reason": str(f.get("reason", ""))})
 
@@ -124,7 +143,7 @@ def build_macro(data: dict, var_info: dict) -> dict:
     for s in data["steps"]:
         m = {k: s[k] for k in ("step", "action", "target", "value", "description", "changes_data",
                                "locator", "page_url") if k in s}
-        for k in ("option_value", "download_filename"):
+        for k in ("option_value", "download_filename", "excel"):
             if k in s:
                 m[k] = s[k]
         v = step_var.get(s["step"])
@@ -155,6 +174,7 @@ def make_macro(rec: str | Path, use_ai: bool = True, prompt_version: str = "v1",
     macro = {
         "id": data["recording_id"],
         "name": data.get("recording_name", ""),
+        "kind": data.get("kind", "web"),
         "source_recording": str(rec_dir),
         "start_url": data.get("start_url", ""),
         "created_at": now_iso(),

@@ -1,7 +1,7 @@
 # 프로젝트: 업무 녹화 매크로 AI
 
 ## 목표
-사용자가 웹 브라우저에서 업무를 한 번 시연하며 녹화하면,
+사용자가 웹 브라우저 또는 Excel에서 업무를 한 번 시연하며 녹화하면,
 AI가 그 과정을 해석해 (1) 업무 매뉴얼과 (2) 다시 실행 가능한 매크로를 함께 만든다.
 
 ## 절대 규칙 (보안)
@@ -9,12 +9,16 @@ AI가 그 과정을 해석해 (1) 업무 매뉴얼과 (2) 다시 실행 가능�
 - 녹화 대상은 이 저장소의 가상 시스템(mock_system/)뿐이다: 가나다증권 업무시스템(/login), 새솔대학교 포털(/portal).
 - 실제 학교 포털(출석·댓글 등)은 학칙·개인정보 문제로 녹화·자동화하지 않는다. 같은 흐름을 가상 포털로 시연한다.
 - 가상 데이터의 회사명, 고객명, 숫자는 모두 지어낸 값이다.
+- 엑셀 녹화 대상은 samples/의 가상 엑셀 파일(make_samples.py로 생성)이다. 관리 화면에서 올린 파일은 uploads/에 두고 커밋하지 않는다.
+- 엑셀 원본 파일은 절대 수정하지 않는다. 녹화·실행 모두 복사본에서 작업하고 결과는 새 파일(_결과.xlsx)로 저장한다.
 - API 키는 .env에만 두고 코드에 하드코딩하지 않는다. .env, recordings/ 원본은 커밋하지 않는다.
 
 ## 기술 스택
 - Python 3.11+
 - 가상 업무 시스템: Flask + HTML/CSS (프런트 프레임워크 없이 단순하게)
 - 녹화/재실행: Playwright (Python)
+- 엑셀 녹화/재실행: 실제 Microsoft Excel을 pywin32(COM)로 조작 (Windows + Excel 필요, → docs/decisions/004)
+  - recorder/excel_com.py 한 곳에 Excel 연동 코드를 모은다. 녹화는 0.5초마다 상태를 비교하는 방식
 - AI 해석: Google Gemini API 무료 등급 (SDK: google-genai). analyzer/llm_client.py 한 곳에서만 호출
   - 모델 이름은 .env의 LLM_MODEL로 정하고 코드에 하드코딩하지 않는다
   - 무료 등급은 요청 횟수 제한이 있으므로 요청을 묶어 보내고, 429 오류는 기다렸다 재시도한다
@@ -27,10 +31,13 @@ analyzer/      AI 해석 (단계 의미, 변수 인식, 판단 기준 질문, �
 runner/        매크로 재실행
 app/           관리 화면 (Flask API + 정적 HTML)
 eval/          평가 스크립트와 시나리오
+samples/       엑셀 녹화용 가상 엑셀 파일
 docs/          meetings, decisions, prompts, results
 
 ## 데이터 형식
 - 녹화 결과: recordings/<id>/events.json + screenshots/<nnn>.jpg (+ steps.json, questions.json, answers.json)
+  - 엑셀 녹화는 events.json에 "kind": "excel", 원본 복사본 input.xlsx와 작업본 work.xlsx가 함께 있다
+  - 엑셀 단계·매크로 단계에는 실행 정보가 "excel" 필드(op, sheet, header, 조건 등)로 들어간다
 - 실행 결과: runs/<id>_<타임스탬프>/result.json (v1 재생과 매크로가 같은 형식)
 - 매크로: macros/<id>.json (단계 목록 + 변수 정의)
 - 매뉴얼: manuals/<id>.md

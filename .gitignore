@@ -174,3 +174,18 @@ poetry.toml
 pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+recordings/
+mock_system/mock.db
+runs/
+# github_묶기.bat 결과물
+dist/
+# 관리 화면에서 올린 엑셀 파일 (개인 파일일 수 있으므로 공유하지 않음) / Excel 임시 잠금 파일
+uploads/
+~$*
+# 녹화 대상 사이트 즐겨찾기 (각자 PC의 개인 설정)
+favorites.json
+# 각자 PC에서 만든 녹화를 가리키는 파일 (녹화 폴더는 공유되지 않으므로 함께 제외)
+eval/recordings_index.json
+# 개인 녹화로 만든 매크로·매뉴얼 (녹화 원본 없이는 의미가 없음)
+macros/*.json
+manuals/*.md

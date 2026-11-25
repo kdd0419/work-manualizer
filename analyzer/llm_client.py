@@ -2,7 +2,8 @@
 
 설정(.env):
   LLM_API_KEY  Google AI Studio에서 받은 키
-  LLM_MODEL    모델 이름 (기본: gemini-flash-latest)
+  LLM_MODEL           모델 이름 (기본: gemini-3.5-flash. 404 '모델 없음' 오류가 나면 --list로 확인해 바꾼다)
+  LLM_FALLBACK_MODEL  기본 모델이 혼잡(503)할 때 쓸 예비 모델 (기본: gemini-3.8-flash)
 
 연결 확인:
   python -m analyzer.llm_client          # 짧은 질문으로 응답 확인
@@ -19,7 +20,9 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-DEFAULT_MODEL = "gemini-flash-latest"
+# 2026-11 기준 새 키에서 쓸 수 있는 무료 모델 (gemini-2.5-flash는 새 사용자 불가, 3.8-flash는 혼잡(503)이 잦음)
+DEFAULT_MODEL = "gemini-3.5-flash"
+DEFAULT_FALLBACK_MODEL = "gemini-3.8-flash"
 MAX_RETRIES = 4          # 429(한도 초과)·일시 오류 재시도 횟수
 IMAGE_MAX_WIDTH = 1024   # 비용·한도 절약을 위해 스크린샷을 이 폭으로 줄여 보낸다
 
@@ -46,6 +49,11 @@ def get_client():
 def model_name() -> str:
     """사용할 모델 이름 (.env의 LLM_MODEL)."""
     return os.getenv("LLM_MODEL", "").strip() or DEFAULT_MODEL
+
+
+def fallback_model_name() -> str:
+    """기본 모델이 혼잡할 때 쓸 예비 모델 (.env의 LLM_FALLBACK_MODEL, 비우면 예비 없음)."""
+    return os.getenv("LLM_FALLBACK_MODEL", DEFAULT_FALLBACK_MODEL).strip()
 
 
 def _image_part(path: str | Path):
@@ -86,22 +94,35 @@ def generate(prompt: str, images: list[ImageArg] | None = None,
         response_mime_type="application/json" if json_mode else "text/plain",
     )
 
-    delay = 5.0
-    for attempt in range(1, MAX_RETRIES + 1):
-        try:
-            resp = get_client().models.generate_content(
-                model=model_name(), contents=contents, config=config)
-            if not resp.text:
-                raise LLMError("AI 응답이 비어 있습니다 (안전 필터 또는 모델 오류).")
-            return resp.text
-        except errors.APIError as e:
-            retryable = e.code in (429, 500, 503)
-            if not retryable or attempt == MAX_RETRIES:
-                hint = " (무료 등급 한도 초과일 수 있습니다. 잠시 후 다시 시도하세요.)" if e.code == 429 else ""
+    # 기본 모델이 혼잡(503)·일시 오류(500)로 계속 실패하면 예비 모델로 한 번 더 시도한다
+    models = [model_name()]
+    fallback = fallback_model_name()
+    if fallback and fallback not in models:
+        models.append(fallback)
+
+    for mi, model in enumerate(models):
+        delay = 5.0
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                resp = get_client().models.generate_content(model=model, contents=contents, config=config)
+                if not resp.text:
+                    raise LLMError("AI 응답이 비어 있습니다 (안전 필터 또는 모델 오류).")
+                return resp.text
+            except errors.APIError as e:
+                retryable = e.code in (429, 500, 503)
+                if retryable and attempt < MAX_RETRIES:
+                    print(f"[llm] {e.code} 오류, {delay:.0f}초 후 재시도 ({attempt}/{MAX_RETRIES - 1})")
+                    time.sleep(delay)
+                    delay *= 2
+                    continue
+                if e.code in (500, 503) and mi + 1 < len(models):
+                    print(f"[llm] {model} 모델이 혼잡해 예비 모델 {models[mi + 1]}(으)로 다시 시도합니다")
+                    break
+                hint = {429: " (무료 등급 한도 초과일 수 있습니다. 잠시 후 다시 시도하세요.)",
+                        503: " (모델이 혼잡합니다. 잠시 후 다시 시도하거나 .env의 LLM_MODEL을 바꾸세요.)",
+                        404: " (python -m analyzer.llm_client --list 로 쓸 수 있는 모델을 확인해 .env의 LLM_MODEL을 바꾸세요.)",
+                        }.get(e.code, "")
                 raise LLMError(f"Gemini API 오류 {e.code}: {e.message}{hint}") from e
-            print(f"[llm] {e.code} 오류, {delay:.0f}초 후 재시도 ({attempt}/{MAX_RETRIES - 1})")
-            time.sleep(delay)
-            delay *= 2
     raise LLMError("재시도 횟수 초과")  # 도달하지 않음
 
 

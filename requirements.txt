@@ -4,3 +4,7 @@ python-dotenv>=1.0
 google-genai>=1.0
 pillow>=10.0
 markdown>=3.5
+# Excel recording/replay (Microsoft Excel via COM, Windows only)
+# NOTE: keep this file ASCII-only. pip reads it with the system code page (cp949 on Korean Windows).
+pywin32>=306; sys_platform == "win32"
+openpyxl>=3.1

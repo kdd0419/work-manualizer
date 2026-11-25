@@ -56,24 +56,50 @@
     <main>
       <!-- ① 녹화 -->
       <section class="tab" id="tab-record" data-step="STEP 1" data-title="녹화"
-        data-lead="업무를 브라우저에서 한 번 시연하며 녹화합니다. 녹화용 창에서 시연을 마치고 그 창을 닫으면 저장됩니다.">
+        data-lead="업무를 브라우저나 Excel에서 한 번 시연하며 녹화합니다. 녹화용 창(또는 Excel)에서 시연을 마치고 그 창을 닫으면 저장됩니다.">
         <div class="card glow">
           <div class="form-grid">
             <label>녹화 이름<input id="rec-name" placeholder="예: 웹프로그래밍 게시판 댓글"></label>
-            <label>녹화할 시스템
-              <select id="rec-preset">
-                <option value="http://localhost:5000/portal/login">🎓 새솔대학교 통합포털 (가상)</option>
-                <option value="http://localhost:5000/login">📈 가나다증권 업무시스템 (가상)</option>
-                <option value="http://localhost:5000">🧭 가상 시스템 선택 화면</option>
-                <option value="custom">✏️ 주소 직접 입력</option>
-              </select>
-            </label>
-            <label class="span2">시작 주소<input id="rec-url" value="http://localhost:5000/portal/login"></label>
+            <div class="vlabel">녹화 대상
+              <div class="seg" role="tablist" id="rec-mode">
+                <span class="seg-pill"></span>
+                <button type="button" role="tab" data-mode="site">🌐 사이트</button>
+                <button type="button" role="tab" data-mode="excel">📊 Excel</button>
+              </div>
+            </div>
+
+            <!-- 사이트: 즐겨찾기 + 시작 주소 -->
+            <div class="span2 mode-panel" id="site-panel">
+              <div class="fav-head"><span>⭐ 즐겨찾기</span><small>누르면 시작 주소에 들어갑니다</small></div>
+              <div class="fav-list" id="fav-list"></div>
+              <div class="url-row">
+                <label>시작 주소<input id="rec-url" value="http://localhost:5000/portal/login" placeholder="https://…"></label>
+                <button type="button" class="star" id="fav-toggle" title="즐겨찾기에 추가">☆ 즐겨찾기</button>
+              </div>
+              <div class="fav-add" id="fav-add" hidden>
+                <input id="fav-name" placeholder="즐겨찾기 이름 (예: 🎓 새솔대 포털)" maxlength="40">
+                <button type="button" class="primary sm" id="fav-save">추가</button>
+                <button type="button" class="ghost sm" id="fav-cancel">취소</button>
+              </div>
+            </div>
+
+            <!-- Excel: 파일 선택 + 올리기 -->
+            <div class="span2 mode-panel file-row" id="xl-row" hidden>
+              <label>엑셀 파일<select id="xl-file"></select></label>
+              <label class="button upload" title="내 PC의 엑셀 파일을 uploads 폴더로 올립니다">⬆ 파일 올리기
+                <input type="file" id="xl-upload" accept=".xlsx,.xlsm,.xls,.csv" hidden></label>
+            </div>
           </div>
           <p class="warn" id="url-warn" hidden>⚠ 가상 시스템이 아닌 주소입니다. 회사·학교 시스템이나 개인정보가 보이는 화면은 녹화하지 마세요. AI를 켜면 스크린샷이 외부(Gemini)로 전송됩니다.</p>
+          <div id="xl-info" hidden>
+            <p class="hint xl-hint">📊 원본 파일은 바뀌지 않고 <b>복사본이 Excel로 열립니다.</b> 시연을 마치면 <b>Excel 창(통합 문서)을 닫으세요.</b><br>
+              기록되는 작업: 필터 · 정렬 · 행 삭제 · 값/수식 입력(채우기 포함) · 열 추가 · 시트 추가. 피벗 · 서식 · 차트는 기록되지 않습니다.</p>
+            <p class="warn" id="xl-warn" hidden>⚠ 직접 올린 파일입니다. 회사·학교의 실제 파일이나 개인정보가 든 파일은 쓰지 마세요. AI를 켜면 스크린샷이 외부(Gemini)로 전송됩니다.</p>
+            <p class="warn" id="xl-noexcel" hidden>⚠ 이 PC에 Microsoft Excel이 없어 엑셀 녹화를 할 수 없습니다.</p>
+          </div>
           <div class="actions">
             <button class="primary lg" id="rec-start"><span>●</span> 녹화 시작</button>
-            <span class="hint">녹화용 Chromium 창이 따로 열립니다</span>
+            <span class="hint" id="rec-start-hint">녹화용 Chromium 창이 따로 열립니다</span>
           </div>
           <div class="job" id="rec-job" hidden>
             <div class="job-head"><span class="badge" id="rec-badge"></span><span id="rec-msg"></span></div>
@@ -180,7 +206,7 @@
               <h2>실행 옵션</h2>
               <label class="opt"><input type="checkbox" id="opt-checks" checked><span><b>실패 감지 (v4)</b><small>0건·오류·다른 페이지에서 멈춤</small></span></label>
               <label class="opt"><input type="checkbox" id="opt-allow"><span><b>데이터 변경 단계 허용</b><small>저장·등록·출석 버튼까지 실행</small></span></label>
-              <label class="opt"><input type="checkbox" id="opt-headless"><span><b>브라우저 창 숨기기</b><small>화면 없이 빠르게 실행</small></span></label>
+              <label class="opt"><input type="checkbox" id="opt-headless"><span><b>실행 창 숨기기</b><small>브라우저·Excel 창 없이 빠르게 실행</small></span></label>
               <p class="warn" id="change-warn" hidden>⚠ 데이터를 바꾸는 단계가 있습니다. 허용하지 않으면 그 단계 직전에 멈춥니다.</p>
               <button class="primary lg block" id="btn-run">⚡ 실행</button>
             </div>

@@ -1,7 +1,7 @@
 // 관리 화면 동작: 서버 API(/api/...)를 불러 화면을 그린다.
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
-const state = { hasKey: false, aiInit: false, recId: null, macro: null, recordings: [], tab: 'record' };
+const state = { hasKey: false, aiInit: false, recId: null, macro: null, recordings: [], tab: 'record', excel: true, xlFiles: [] };
 const MOCK_PREFIX = 'http://localhost:5000';
 
 // ================================================================ 공통 도우미
@@ -132,6 +132,8 @@ async function refreshStatus() {
     $('#ai-chip').classList.toggle('disabled', !s.has_key);
     $('#ai-chip').title = s.has_key ? `모델: ${s.model}` : '.env에 LLM_API_KEY가 없어 규칙 기반으로만 동작합니다';
     $('#ai-text').textContent = s.has_key ? `AI 사용 · ${s.model}` : 'AI 키 없음 · 규칙 기반';
+    state.excel = s.excel;
+    $('#xl-noexcel').hidden = s.excel;
   } catch (e) {
     $('#mock-chip').className = 'stat-line off';
     $('#mock-text').textContent = '관리 서버 연결 끊김';
@@ -192,7 +194,7 @@ async function loadRecordings() {
   const tbody = $('#rec-table tbody');
   tbody.innerHTML = state.recordings.map((r) => `
     <tr>
-      <td class="rec-name"><b>${esc(r.name)}</b><span>${esc(r.id)}</span></td>
+      <td class="rec-name"><b><span class="kind" title="${r.kind === 'excel' ? '엑셀 녹화' : '웹 녹화'}">${r.kind === 'excel' ? '📊' : '🌐'}</span>${esc(r.name)}</b><span>${esc(r.kind === 'excel' ? r.source : r.id)}</span></td>
       <td class="num">${r.events}</td>
       <td>${esc(r.started_at.replace('T', ' '))}</td>
       <td>${pipeline(r)}</td>
@@ -209,7 +211,7 @@ async function loadRecordings() {
   const sel = $('#rec-select');
   if (!visible.find((r) => r.id === state.recId)) state.recId = visible[0]?.id || null;
   sel.innerHTML = visible.map((r) =>
-    `<option value="${esc(r.id)}" ${r.id === state.recId ? 'selected' : ''}>${esc(r.name)} · ${esc(r.started_at.replace('T', ' '))}</option>`
+    `<option value="${esc(r.id)}" ${r.id === state.recId ? 'selected' : ''}>${r.kind === 'excel' ? '📊 ' : ''}${esc(r.name)} · ${esc(r.started_at.replace('T', ' '))}</option>`
   ).join('') || '<option value="">녹화가 없습니다</option>';
 }
 
@@ -217,26 +219,146 @@ $('#rec-refresh').onclick = loadRecordings;
 $('#hide-eval').onchange = () => loadRecordings().then(loadDetail);
 $('#rec-select').onchange = (e) => { state.recId = e.target.value; loadDetail(); };
 
-// 녹화할 시스템 선택 → 시작 주소 채우기, 가상 시스템이 아니면 경고
-function checkUrl() { $('#url-warn').hidden = $('#rec-url').value.trim().startsWith(MOCK_PREFIX); }
-$('#rec-preset').onchange = (e) => {
-  if (e.target.value === 'custom') { $('#rec-url').value = ''; $('#rec-url').focus(); }
-  else $('#rec-url').value = e.target.value;
+// ---------------- 녹화 대상: [🌐 사이트] / [📊 Excel] 전환
+state.recMode = 'site';
+state.favorites = [];
+const isExcelRec = () => state.recMode === 'excel';
+function checkUrl() { $('#url-warn').hidden = isExcelRec() || $('#rec-url').value.trim().startsWith(MOCK_PREFIX); }
+
+function setRecMode(mode) {
+  state.recMode = mode;
+  const xl = mode === 'excel';
+  $('#rec-mode').dataset.mode = mode;
+  $$('#rec-mode button').forEach((b) => { const on = b.dataset.mode === mode; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+  $('#site-panel').hidden = xl;
+  $('#xl-row').hidden = !xl;
+  $('#xl-info').hidden = !xl;
+  $('#rec-start-hint').textContent = xl ? '원본 파일의 복사본이 Excel로 열립니다' : '녹화용 Chromium 창이 따로 열립니다';
+  if (xl) loadExcelFiles().then(() => { fillFileSelect($('#xl-file')); checkXlWarn(); });
+  else loadFavorites();
+  checkXlWarn();
   checkUrl();
+  try { localStorage.setItem('recMode', mode); } catch (e) {}
+}
+$$('#rec-mode button').forEach((b) => (b.onclick = () => setRecMode(b.dataset.mode)));
+
+// ---------------- 사이트 즐겨찾기
+async function loadFavorites() {
+  try { state.favorites = await api('/api/favorites'); } catch (e) { state.favorites = []; }
+  renderFavorites();
+}
+
+function renderFavorites() {
+  const cur = $('#rec-url').value.trim();
+  $('#fav-list').innerHTML = state.favorites.map((f, i) => `
+    <button type="button" class="fav ${f.url === cur ? 'on' : ''}" data-i="${i}" title="${esc(f.url)}">
+      ${esc(f.name)}<small>${esc(f.url)}</small>
+      <span class="x" role="button" data-del="${i}" title="즐겨찾기에서 삭제" aria-label="${esc(f.name)} 삭제">✕</span>
+    </button>`).join('') || '<p class="fav-empty">즐겨찾기가 없습니다. 아래에 주소를 입력하고 ☆ 즐겨찾기를 누르세요.</p>';
+  $$('#fav-list .fav').forEach((b) => (b.onclick = (e) => {
+    if (e.target.closest('[data-del]')) return;
+    $('#rec-url').value = state.favorites[+b.dataset.i].url;
+    onUrlChange();
+  }));
+  $$('#fav-list [data-del]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); deleteFavorite(state.favorites[+x.dataset.del]); }));
+  const isFav = state.favorites.some((f) => f.url === cur);
+  const star = $('#fav-toggle');
+  star.classList.toggle('on', isFav);
+  star.textContent = isFav ? '★ 즐겨찾기됨' : '☆ 즐겨찾기';
+  star.title = isFav ? '누르면 즐겨찾기에서 삭제' : '이 주소를 즐겨찾기에 추가';
+}
+
+async function deleteFavorite(f) {
+  try {
+    state.favorites = await api('/api/favorites/delete', { body: { url: f.url } });
+    toast(`즐겨찾기에서 삭제했습니다: ${f.name}`, 'info');
+  } catch (e) { toast(e.message, 'bad'); }
+  renderFavorites();
+}
+
+function onUrlChange() { $('#fav-add').hidden = true; renderFavorites(); checkUrl(); }
+$('#rec-url').oninput = onUrlChange;
+
+// ☆ 누르면 이름 입력칸이 나오고, ★(이미 즐겨찾기)이면 삭제
+$('#fav-toggle').onclick = () => {
+  const url = $('#rec-url').value.trim();
+  const fav = state.favorites.find((f) => f.url === url);
+  if (fav) { deleteFavorite(fav); return; }
+  if (!/^https?:\/\/\S+$/.test(url)) { toast('http:// 또는 https:// 로 시작하는 주소를 입력하세요', 'bad'); $('#rec-url').focus(); return; }
+  let guess = url;
+  try { const u = new URL(url); guess = u.hostname + (u.pathname !== '/' ? u.pathname : ''); } catch (e) {}
+  $('#fav-name').value = guess;
+  $('#fav-add').hidden = false;
+  $('#fav-name').select();
 };
-$('#rec-url').oninput = () => {
-  const v = $('#rec-url').value.trim();
-  const match = $$('#rec-preset option').find((o) => o.value === v);
-  $('#rec-preset').value = match ? v : 'custom';
-  checkUrl();
+async function saveFavorite() {
+  const url = $('#rec-url').value.trim(), name = $('#fav-name').value.trim();
+  try {
+    state.favorites = await api('/api/favorites', { body: { url, name } });
+    $('#fav-add').hidden = true;
+    toast(`즐겨찾기에 추가했습니다: ${name || url}`, 'ok');
+  } catch (e) { toast(e.message, 'bad'); }
+  renderFavorites();
+}
+$('#fav-save').onclick = saveFavorite;
+$('#fav-name').onkeydown = (e) => { if (e.key === 'Enter') saveFavorite(); if (e.key === 'Escape') $('#fav-add').hidden = true; };
+$('#fav-cancel').onclick = () => ($('#fav-add').hidden = true);
+
+// ---------------- 엑셀 파일 목록·올리기 (녹화와 매크로 실행에서 함께 사용)
+async function loadExcelFiles() {
+  try { state.xlFiles = await api('/api/excel/files'); } catch (e) { state.xlFiles = []; }
+}
+
+// 파일 선택 상자 채우기 (샘플 / 올린 파일 묶음). extra: 목록에 없는 현재 값도 넣기
+function fillFileSelect(sel, selected = sel.value, extra = '') {
+  const groups = {};
+  state.xlFiles.forEach((f) => (groups[f.group] ||= []).push(f));
+  let html = Object.entries(groups).map(([g, fs]) =>
+    `<optgroup label="${esc(g)}">${fs.map((f) => `<option value="${esc(f.path)}">${esc(f.name)}</option>`).join('')}</optgroup>`).join('');
+  if (extra && !state.xlFiles.some((f) => f.path === extra)) html = `<option value="${esc(extra)}">${esc(extra)} (녹화 때 파일)</option>` + html;
+  sel.innerHTML = html || '<option value="">엑셀 파일이 없습니다</option>';
+  if ([...sel.options].some((o) => o.value === selected)) sel.value = selected;
+}
+
+// 올린 파일(uploads/)을 고르면 실제 데이터 주의 문구
+function checkXlWarn() { $('#xl-warn').hidden = !isExcelRec() || !$('#xl-file').value.startsWith('uploads/'); }
+$('#xl-file').onchange = checkXlWarn;
+
+async function uploadExcel(input) {
+  const file = input.files[0];
+  input.value = '';
+  if (!file) return null;
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const res = await fetch('/api/excel/upload', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    await loadExcelFiles();
+    toast(`올렸습니다: ${data.name}`, 'ok');
+    return data.path;
+  } catch (e) { toast(e.message, 'bad'); return null; }
+}
+$('#xl-upload').onchange = async (e) => {
+  const path = await uploadExcel(e.target);
+  if (path) { fillFileSelect($('#xl-file'), path); checkXlWarn(); }
 };
 
 $('#rec-start').onclick = async () => {
   const name = $('#rec-name').value.trim();
   if (!name) { toast('녹화 이름을 입력하세요', 'bad'); $('#rec-name').focus(); return; }
-  toast('잠시 후 녹화용 창이 열립니다. 시연 후 그 창을 닫으세요', 'info');
-  $('#rec-msg').textContent = '녹화 중… 시연을 마치면 녹화용 브라우저 창을 닫으세요.';
-  const job = await runJob({ kind: 'record', name, url: $('#rec-url').value }, 'rec', [$('#rec-start')], '녹화');
+  let body = { kind: 'record', name, url: $('#rec-url').value };
+  if (isExcelRec()) {
+    if (!state.excel) { toast('이 PC에 Microsoft Excel이 없습니다', 'bad'); return; }
+    if (!$('#xl-file').value) { toast('엑셀 파일을 고르세요', 'bad'); return; }
+    body = { kind: 'record', name, source: 'excel', file: $('#xl-file').value };
+    toast('잠시 후 Excel이 열립니다. 작업을 마치면 Excel 창을 닫으세요', 'info');
+    $('#rec-msg').textContent = '녹화 중… 작업을 마치면 Excel 창(통합 문서)을 닫으세요.';
+  } else {
+    toast('잠시 후 녹화용 창이 열립니다. 시연 후 그 창을 닫으세요', 'info');
+    $('#rec-msg').textContent = '녹화 중… 시연을 마치면 녹화용 브라우저 창을 닫으세요.';
+  }
+  const job = await runJob(body, 'rec', [$('#rec-start')], '녹화');
   $('#rec-msg').textContent = job.status === 'done' ? '저장되었습니다. 목록에서 "열기 →"를 눌러 해석하세요.' : '녹화에 실패했습니다. 로그를 확인하세요.';
   loadRecordings();
 };
@@ -374,7 +496,7 @@ async function loadMacros() {
   const sel = $('#macro-select');
   const prev = sel.value;
   sel.innerHTML = visible.map((m) =>
-    `<option value="${esc(m.id)}">${esc(m.name || m.id)} · 단계 ${m.steps} · 변수 ${m.variables}</option>`).join('');
+    `<option value="${esc(m.id)}">${m.kind === 'excel' ? '📊 ' : '🌐 '}${esc(m.name || m.id)} · 단계 ${m.steps} · 변수 ${m.variables}</option>`).join('');
   if (visible.find((m) => m.id === prev)) sel.value = prev;
   $('#macro-empty').hidden = visible.length > 0;
   $('#macro-area').hidden = !visible.length;
@@ -383,12 +505,24 @@ async function loadMacros() {
 
 async function loadMacro() {
   const m = state.macro = await api(`/api/macros/${encodeURIComponent($('#macro-select').value)}`);
-  $('#var-form').innerHTML = m.variables.map((v) => `
+  const hasFile = m.variables.some((v) => v.type === 'file');
+  if (hasFile) await loadExcelFiles();
+  $('#var-form').innerHTML = m.variables.map((v) => v.type === 'file' ? `
+    <div class="vlabel">${esc(v.name)} <small>${esc(v.description || '')}</small>
+      <span class="var-file"><select data-var="${esc(v.name)}" data-default="${esc(v.default ?? '')}" aria-label="${esc(v.name)}"></select>
+        <label class="button">⬆ 올리기<input type="file" data-upload="${esc(v.name)}" accept=".xlsx,.xlsm,.xls,.csv" hidden></label></span>
+    </div>` : `
     <label>${esc(v.name)} <small>${esc(v.description || '')} · ${esc(v.default_rule)}</small>
       <input data-var="${esc(v.name)}" type="${v.secret ? 'password' : 'text'}"
         value="${v.secret ? '' : esc(v.default ?? '')}" placeholder="${v.secret ? '실행할 때마다 입력' : ''}">
     </label>`).join('') || '<p class="hint">변수가 없는 매크로입니다.</p>';
-  $$('#var-form input').forEach((i) => (i.oninput = renderMacroSteps));
+  $$('#var-form select[data-var]').forEach((s) => fillFileSelect(s, s.dataset.default, s.dataset.default));
+  $$('#var-form [data-upload]').forEach((inp) => (inp.onchange = async () => {
+    const path = await uploadExcel(inp);
+    const sel = $(`#var-form select[data-var="${CSS.escape(inp.dataset.upload)}"]`);
+    if (path) { fillFileSelect(sel, path, sel.dataset.default); renderMacroSteps(); }
+  }));
+  $$('#var-form [data-var]').forEach((i) => (i.oninput = i.onchange = renderMacroSteps));
   const changes = m.steps.some((s) => s.changes_data);
   $('#opt-allow').disabled = !changes;
   $('#change-warn').hidden = !changes || $('#opt-allow').checked;
@@ -399,7 +533,7 @@ async function loadMacro() {
 
 function varValues() {
   const values = {};
-  $$('#var-form input').forEach((i) => (values[i.dataset.var] = i.value));
+  $$('#var-form [data-var]').forEach((i) => (values[i.dataset.var] = i.value));
   return values;
 }
 
@@ -410,7 +544,7 @@ function renderMacroSteps(animate) {
   const tbody = $('#macro-steps tbody');
   tbody.innerHTML = state.macro.steps.map((s) => `
     <tr><td>${s.step}</td><td>${tag(s.action, 'blue')}</td><td>${esc(s.description)}</td>
-    <td><b>${['입력', '선택'].includes(s.action) ? esc(fill(s.value)) : ''}</b></td>
+    <td><b>${['입력', '선택'].includes(s.action) || s.excel ? esc(fill(s.value)) : ''}</b></td>
     <td>${s.changes_data ? tag('데이터 변경', 'warn') : ''}</td></tr>`).join('');
   if (animate === true) animateRows(tbody);
 }
@@ -424,7 +558,9 @@ $('#btn-run').onclick = async () => {
   const missing = Object.entries(values).filter(([, v]) => !v.trim()).map(([k]) => k);
   if (missing.length) { toast(`값을 입력하세요: ${missing.join(', ')}`, 'bad'); return; }
   $('#run-result').hidden = true;
-  $('#run-msg').textContent = $('#opt-headless').checked ? '' : '자동 실행용 브라우저 창이 열립니다. 건드리지 말고 지켜보세요.';
+  const xlMacro = state.macro.kind === 'excel';
+  $('#run-msg').textContent = $('#opt-headless').checked ? ''
+    : xlMacro ? 'Excel 창이 열려 자동으로 작업합니다. 건드리지 말고 지켜보세요.' : '자동 실행용 브라우저 창이 열립니다. 건드리지 말고 지켜보세요.';
   const job = await runJob({
     kind: 'run', mid: $('#macro-select').value, values,
     checks: $('#opt-checks').checked, allow_changes: $('#opt-allow').checked, headless: $('#opt-headless').checked,
@@ -442,7 +578,7 @@ function renderRunResult(r) {
     ${r.success
       ? `<div class="banner ok">✅ 성공 — 총 ${r.total}단계 중 ${r.succeeded}단계 완료 (${esc(r.version || '')})</div>`
       : `<div class="banner bad">⛔ ${r.stopped_at}단계에서 멈췄습니다<small>${esc(r.stop_message || '')}</small></div>`}
-    ${r.downloads.length ? `<p><b>다운로드한 파일:</b> ${r.downloads.map((f) =>
+    ${r.downloads.length ? `<p><b>${r.kind === 'excel' ? '📊 결과 파일 (눌러서 받기)' : '다운로드한 파일'}:</b> ${r.downloads.map((f) =>
       `<a href="/files/runs/${encodeURIComponent(runName)}/${encodeURIComponent(f)}">${esc(f)}</a>`).join(', ')}</p>` : ''}
     ${r.messages.length ? `<p><b>화면 메시지:</b> ${r.messages.map(esc).join(' / ')}</p>` : ''}
     <div class="table-wrap"><table><thead><tr><th>#</th><th>결과</th><th>동작</th><th>대상</th><th>메시지</th></tr></thead><tbody>
@@ -492,4 +628,6 @@ setInterval(refreshStatus, 5000);
 let firstTab = 'record';
 try { firstTab = localStorage.getItem('tab') || 'record'; } catch (e) {}
 showTab(firstTab);
-checkUrl();
+let firstMode = 'site';
+try { firstMode = localStorage.getItem('recMode') === 'excel' ? 'excel' : 'site'; } catch (e) {}
+setRecMode(firstMode);

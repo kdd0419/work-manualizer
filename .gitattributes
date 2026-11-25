@@ -1,0 +1,2 @@
+# 배치 파일은 Windows 줄바꿈(CRLF)을 유지해야 더블클릭 실행이 깨지지 않는다
+*.bat text eol=crlf

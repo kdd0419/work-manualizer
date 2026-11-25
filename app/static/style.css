@@ -101,6 +101,56 @@ footer { text-align: center; color: var(--muted); font-size: 12px; padding: 0 20
 /* ---------- 폼 ---------- */
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
 .form-grid .span2 { grid-column: span 2; }
+/* 녹화 대상: 사이트 / Excel 전환 버튼 */
+.seg { position: relative; display: grid; grid-template-columns: 1fr 1fr; padding: 4px; height: 42px; border-radius: 12px;
+  background: #eef0f6; border: 1px solid #dfe3ee; }
+.seg button { position: relative; z-index: 1; border: 0; background: transparent; color: #5b6478; padding: 0; height: 100%;
+  font-size: 14px; box-shadow: none !important; transform: none !important; transition: color .25s; }
+.seg button.on { color: var(--primary); }
+.seg-pill { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 9px; background: #fff;
+  box-shadow: 0 2px 8px rgba(30,40,90,.12); transition: transform .3s var(--ease); }
+.seg[data-mode="excel"] .seg-pill { transform: translateX(100%); }
+.mode-panel { animation: panelIn .3s var(--ease); }
+@keyframes panelIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* 즐겨찾기 */
+.fav-head { display: flex; align-items: baseline; gap: 8px; font-weight: 600; font-size: 13px; color: #3a4357; margin-bottom: 8px; }
+.fav-head small { font-weight: 400; color: var(--muted); font-size: 12px; }
+.fav-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.fav { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left;
+  padding: 10px 34px 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: var(--text);
+  font-weight: 600; white-space: normal; }
+.fav small { font-weight: 400; font-size: 11.5px; color: var(--muted); word-break: break-all; }
+.fav.on { border-color: var(--primary); background: var(--primary-weak); box-shadow: 0 0 0 3px rgba(79,70,229,.12); }
+.fav .x { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%;
+  background: transparent; color: #9aa1b2; font-size: 14px; line-height: 1; opacity: 0; transition: opacity .2s, background .2s; }
+.fav:hover .x, .fav:focus-within .x { opacity: 1; }
+.fav .x:hover { background: var(--bad-bg); color: var(--bad); box-shadow: none; transform: none; }
+.fav-empty { color: var(--muted); font-size: 13px; padding: 10px 0; }
+.url-row { display: flex; gap: 10px; align-items: flex-end; }
+.url-row > label { flex: 1; min-width: 0; }
+button.star { height: 42px; color: #b7791f; border-color: #f1dca8; }
+button.star.on { background: #fff8e6; }
+.fav-add { display: flex; gap: 8px; margin-top: 10px; animation: panelIn .25s var(--ease); }
+.fav-add input { flex: 1; }
+@media (hover: none) { .fav .x { opacity: 1; } }
+@media (max-width: 640px) { .url-row { flex-direction: column; align-items: stretch; } }
+
+.file-row { display: flex; gap: 10px; align-items: flex-end; }
+.file-row > label:first-child { flex: 1; min-width: 0; }
+label.button { display: inline-flex; flex-direction: row; align-items: center; justify-content: center; gap: 6px;
+  padding: 0 16px; height: 42px; border-radius: 10px; border: 1px solid #cfd4f6; background: #fff; color: var(--primary);
+  font-weight: 600; cursor: pointer; white-space: nowrap; transition: transform .15s var(--ease), box-shadow .2s; }
+label.button:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(79,70,229,.15); }
+label.button.upload { font-size: 13px; }
+.vlabel { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 13px; color: #3a4357; }
+.vlabel small { font-weight: 400; color: var(--muted); font-size: 12px; }
+.var-file { display: flex; gap: 8px; }
+.var-file select { flex: 1; min-width: 0; }
+.var-file label.button { flex-direction: row; padding: 0 12px; font-size: 12.5px; }
+.xl-hint { margin: 14px 0 0; padding: 10px 14px; border-radius: 10px; background: #eefbf3; color: #1f6b43; line-height: 1.6; }
+.kind { display: inline-block; margin-right: 6px; }
+@media (max-width: 640px) { .file-row { flex-direction: column; align-items: stretch; } }
 .var-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px 16px; }
 label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 13px; color: #3a4357; }
 label small { font-weight: 400; color: var(--muted); font-size: 12px; }

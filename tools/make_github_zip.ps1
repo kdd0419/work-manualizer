@@ -4,11 +4,12 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
-$excludeDirs = '^(\.venv|recordings|runs|dist|\.git|\.claude)(\\|$)|\\__pycache__(\\|$)|^__pycache__(\\|$)'
+$excludeDirs = '^(\.venv|recordings|runs|uploads|dist|\.git|\.claude)(\\|$)|\\__pycache__(\\|$)|^__pycache__(\\|$)'
 $files = Get-ChildItem -Recurse -File -Force | Where-Object {
     $r = $_.FullName.Substring($root.Length + 1)
     -not ($r -match $excludeDirs) -and
-    $_.Name -ne '.env' -and $_.Extension -ne '.pyc' -and
+    $_.Name -ne '.env' -and $_.Extension -ne '.pyc' -and -not $_.Name.StartsWith('~$') -and
+    $r -ne 'favorites.json' -and
     $r -ne 'mock_system\mock.db' -and $r -ne 'eval\recordings_index.json' -and
     -not ($r -match '^macros\\.*\.json$') -and -not ($r -match '^manuals\\.*\.md$')
 }

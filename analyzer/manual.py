@@ -31,6 +31,24 @@ def _steps_for_prompt(steps: list[dict]) -> list[dict]:
 def _rule_based(data: dict, answers: list[dict]) -> dict:
     """AI 없이 만드는 기본 매뉴얼 내용."""
     steps = data["steps"]
+    if data.get("kind") == "excel":
+        stem = data.get("source_file", "원본").rsplit(".", 1)[0]
+        cautions = [f"{s['step']}단계는 조건에 맞는 행을 지웁니다. 결과 파일에서 남은 행 수를 확인하세요."
+                    for s in steps if s["action"] == "행 삭제"]
+        if any(s["action"] in ("아래 행 추가", "셀 입력", "열 채우기") for s in steps):
+            cautions.append("수식의 범위는 파일의 행 수에 맞춰 자동으로 늘어납니다. 합계·건수가 맞는지 확인하세요.")
+        cautions.append("파일 양식(시트 이름, 머리글 순서)이 바뀌면 매크로가 첫 단계에서 멈춥니다.")
+        return {
+            "title": data.get("recording_name") or data["recording_id"],
+            "purpose": f"'{data.get('recording_name', '')}' 엑셀 작업을 처리한다.",
+            "purpose_is_guess": True,
+            "prerequisites": ["Microsoft Excel",
+                              f"작업할 엑셀 파일 (녹화 때 사용한 파일: {data.get('source_file', '')}, 같은 양식이어야 함)"],
+            "outputs": [f"결과 파일: {stem}_결과.xlsx (원본 파일은 바뀌지 않음)"],
+            "cautions": cautions,
+            "criteria": [f"{a['question']} → {a['answer']}" for a in answers],
+            "exceptions": [],
+        }
     outputs = [f"다운로드 파일: {s['download_filename']}" for s in steps if s.get("download_filename")]
     outputs += [f"저장된 데이터: {s['target']} 단계에서 저장" for s in steps if s["changes_data"]]
     cautions = [f"{s['step']}단계({s['target']})는 데이터를 변경합니다. 실행 전에 입력값을 확인하세요."
@@ -73,7 +91,7 @@ def render(data: dict, content: dict, rec_dir: Path, answers: list[dict]) -> str
     ]
     for s in data["steps"]:
         detail = []
-        if s.get("value") and s["action"] in ("입력", "선택", "이동"):
+        if s.get("value") and (s["action"] in ("입력", "선택", "이동") or s.get("excel")):
             detail.append(f"값: `{s['value']}`")
         if s.get("download_filename"):
             detail.append(f"파일: `{s['download_filename']}`")
