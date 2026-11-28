@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 
 from .common import (fill_prompt, load_prompt, now_iso, read_json, resolve_recording,
                      write_json)
+from .josa import fix_josa
 
 BATCH_SIZE = 8   # 한 번의 AI 요청에 묶는 이벤트 수 (무료 등급 요청 수 절약)
 CHANGE_WORDS = ("저장", "등록", "수정", "삭제", "승인", "신청", "확정", "제출", "출석", "작성", "전송")
@@ -153,7 +154,9 @@ def interpret(rec: str | Path, use_ai: bool = True, prompt_version: str = "v1",
     data = read_json(rec_dir / "events.json")
     if data.get("kind") == "excel":   # 엑셀 녹화는 전용 해석기로
         from .excel_interpret import interpret_excel
-        return interpret_excel(rec_dir, data, use_ai, prompt_version, log)
+        path = interpret_excel(rec_dir, data, use_ai, prompt_version, log)
+        _overview(rec_dir, use_ai, log)
+        return path
     cands = prefilter(data["events"])
     log(f"이벤트 {len(data['events'])}개 → 해석 대상 {len(cands)}개")
 
@@ -189,7 +192,7 @@ def interpret(rec: str | Path, use_ai: bool = True, prompt_version: str = "v1",
             "action": c["action"],
             "target": target,
             "value": c.get("value", "") if c["action"] not in ("클릭", "다운로드", "제출") else "",
-            "description": str(ai.get("description") or default_description(c, target)),
+            "description": fix_josa(str(ai.get("description") or default_description(c, target))),
             "changes_data": bool(ai.get("changes_data")) or _guess_changes(c),
             "locator": {k: c.get(k, "") for k in LOCATOR_KEYS},
             "page_url": c.get("url", ""),
@@ -216,7 +219,17 @@ def interpret(rec: str | Path, use_ai: bool = True, prompt_version: str = "v1",
     }
     path = write_json(rec_dir / "steps.json", out)
     log(f"단계 {len(steps)}개 → {path}")
+    _overview(rec_dir, use_ai, log)
     return path
+
+
+def _overview(rec_dir: Path, use_ai: bool, log) -> None:
+    """단계 해석 뒤 업무·화면 개요도 함께 만든다 (실패해도 해석 결과는 그대로)."""
+    from .overview import make_overview
+    try:
+        make_overview(rec_dir, use_ai=use_ai, log=log)
+    except Exception as e:
+        log(f"업무 개요를 만들지 못했습니다: {str(e).splitlines()[0][:150]}")
 
 
 def main() -> None:

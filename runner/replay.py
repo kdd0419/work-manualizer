@@ -52,10 +52,10 @@ def replay(rec_dir: str | Path, headless: bool = False,
                     step["message"] = "앞 단계 클릭에서 함께 처리됨"
                 elif kind == "navigate":
                     if not first_nav_done:
-                        page.goto(ev["url"])
+                        page.goto(ev["url"], wait_until="domcontentloaded", timeout=30000)
                         first_nav_done = True
-                    else:
-                        page.wait_for_url(ev["url"], timeout=5000)   # 녹화 때와 같은 주소로 이동했는지 확인
+                    else:   # 녹화 때와 같은 주소로 이동했는지 확인 (외부 글꼴 로딩은 기다리지 않음)
+                        page.wait_for_url(ev["url"], timeout=5000, wait_until="domcontentloaded")
                 elif kind == "submit" and ev.get("via") == "click":
                     step["status"] = "건너뜀"
                     step["message"] = "버튼 클릭으로 이미 제출됨"

@@ -109,11 +109,13 @@ def _select(page: Page, step: dict, el, value: str) -> None:
 def run_macro(macro_path: str | Path, values: dict[str, str], headless: bool = False,
               checks: bool = True, allow_changes: bool = False,
               confirm: Callable[[dict], bool] | None = None,
-              log: Callable[[str], None] = print) -> dict:
+              log: Callable[[str], None] = print,
+              stop_before: int | None = None, on_stop: Callable[[Page], None] | None = None) -> dict:
     """매크로를 실행하고 결과 dict를 돌려준다.
 
     checks=True(v4): 페이지 확인, 0건·오류 메시지 감지, 데이터 변경 단계 확인
     confirm: 데이터 변경 단계 직전에 호출 (True면 실행). 없으면 allow_changes 값을 따른다.
+    stop_before/on_stop: 그 단계 직전에 멈추고 on_stop(page)을 부른다 (웹 화면 구조 읽기용, 말로 고치기 ⑤)
     """
     macro = load_macro(macro_path)
     if macro.get("kind") == "excel":   # 엑셀 매크로는 Excel을 직접 조작하는 실행기로
@@ -132,13 +134,20 @@ def run_macro(macro_path: str | Path, values: dict[str, str], headless: bool = F
 
         for step in macro["steps"]:
             n, action = step["step"], step["action"]
+            if stop_before is not None and n == stop_before:
+                settle(page)
+                if on_stop:
+                    on_stop(page)
+                result["inspected_at"] = n
+                break
             value = render(step.get("value", ""), values)
             shown = "***" if any(_is_secret(m) for m in VAR_PATTERN.findall(step.get("value", ""))) else value
             rec = {"step": n, "action": action, "target": step["target"], "value": shown,
                    "status": "성공", "message": ""}
             try:
                 if action == "이동":
-                    page.goto(value or step["page_url"])
+                    # 화면 구조가 준비되면 진행 (외부 글꼴 등이 느려도 멈추지 않게)
+                    page.goto(value or step["page_url"], wait_until="domcontentloaded", timeout=30000)
                 else:
                     # v4: 녹화 때와 같은 페이지에 있는지 확인
                     if checks and step.get("page_url") and url_path(page.url) != url_path(step["page_url"]):

@@ -9,6 +9,7 @@ import argparse
 from pathlib import Path
 
 from .common import fill_prompt, load_prompt, now_iso, read_json, resolve_recording, write_json
+from .josa import fix_josa
 
 MIN_Q, MAX_Q = 2, 5
 
@@ -74,13 +75,13 @@ def make_questions(rec: str | Path, use_ai: bool = True, prompt_version: str = "
         if isinstance(q, dict) and str(q.get("question", "")).strip():
             kind = q.get("kind") if q.get("kind") in ("판단 기준", "예외 상황") else "판단 기준"
             questions.append({"id": f"q{len(questions) + 1}", "kind": kind,
-                              "question": q["question"].strip(), "why": str(q.get("why", "")),
+                              "question": fix_josa(q["question"].strip()), "why": fix_josa(str(q.get("why", ""))),
                               "related_steps": [n for n in q.get("related_steps", []) if isinstance(n, int)]})
     if len(questions) < MIN_Q:   # 너무 적으면 기본 질문으로 보충
         for q in _rule_based(steps):
             if len(questions) >= MIN_Q:
                 break
-            questions.append({"id": f"q{len(questions) + 1}", **q})
+            questions.append({"id": f"q{len(questions) + 1}", **q, "question": fix_josa(q["question"])})
     questions = questions[:MAX_Q]
 
     path = write_json(rec_dir / "questions.json",

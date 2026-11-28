@@ -92,10 +92,18 @@
     };
   }
 
+  // 화면에서 요소 위치 (스크린샷에 빨간 상자를 그리는 용도)
+  function rectOf(el) {
+    try {
+      const r = el.getBoundingClientRect();
+      return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
+    } catch (e) { return null; }
+  }
+
   function send(type, el, extra) {
     try {
       window.__recordEvent({
-        type, ...describe(el), ...(extra || {}),
+        type, ...describe(el), ...(extra || {}), rect: el.tagName === 'FORM' ? null : rectOf(el),
         url: location.href, title: document.title, ts: Date.now(),
       });
     } catch (e) { /* 녹화기 연결이 끊긴 경우 무시 */ }
@@ -106,6 +114,11 @@
     for (const el of pending) send('input', el, { value: maskedValue(el) });
     pending.clear();
   }
+
+  // 누르는 순간(페이지 이동 전) 화면을 미리 찍게 알린다. 클릭 순간에는 이미 이동이 시작될 수 있다.
+  const prepare = () => { try { window.__recordPrep && window.__recordPrep(); } catch (e) {} };
+  document.addEventListener('pointerdown', prepare, true);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Enter') prepare(); }, true);
 
   document.addEventListener('input', (e) => {
     if (isTextField(e.target)) pending.add(e.target);

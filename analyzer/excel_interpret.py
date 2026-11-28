@@ -15,6 +15,7 @@ from pathlib import Path
 from recorder.excel_com import cond_text
 
 from .common import fill_prompt, load_prompt, now_iso, write_json
+from .josa import fix_josa
 
 MAX_COND_VALUES = 5   # 조건으로 인정할 값 종류 수 (너무 많으면 조건이 아니라 우연)
 
@@ -91,7 +92,7 @@ def _merge_cells_events(events: list[dict]) -> list[dict]:
 def _step(ev: dict, action: str, target: str, value, description: str, excel: dict,
           variable_ok: bool = False, var_name: str = "") -> dict:
     s = {"event_seq": ev["seq"], "action": action, "target": target, "value": _s(value),
-         "description": description, "changes_data": False, "locator": {}, "page_url": "",
+         "description": fix_josa(description), "changes_data": False, "locator": {}, "page_url": "",
          "screenshot": ev.get("screenshot", ""), "excel": excel}
     if variable_ok:
         s["variable_ok"] = True
@@ -290,7 +291,7 @@ def interpret_excel(rec_dir: Path, data: dict, use_ai: bool, prompt_version: str
         desc = _ai_descriptions(data.get("name", ""), steps, prompt_version, log)
         for s in steps:
             if s["step"] in desc:
-                s["description"] = desc[s["step"]]
+                s["description"] = fix_josa(desc[s["step"]])
             else:
                 s["note"] = "AI 응답에 없어 규칙 기반으로 채움"
 

@@ -11,7 +11,8 @@ $files = Get-ChildItem -Recurse -File -Force | Where-Object {
     $_.Name -ne '.env' -and $_.Extension -ne '.pyc' -and -not $_.Name.StartsWith('~$') -and
     $r -ne 'favorites.json' -and
     $r -ne 'mock_system\mock.db' -and $r -ne 'eval\recordings_index.json' -and
-    -not ($r -match '^macros\\.*\.json$') -and -not ($r -match '^manuals\\.*\.md$')
+    -not ($r -match '^macros\\.*\.json$') -and -not ($r -match '^manuals\\.*\.md$') -and
+    -not ($r -match '^chains\\.*\.json$')
 }
 
 $dist = Join-Path $root 'dist'
@@ -32,6 +33,7 @@ if ($bad) { throw "Blocked: secret or DB file found in bundle: $($bad.FullName)"
 
 $stamp = Get-Date -Format 'yyyyMMdd_HHmm'
 $zip = Join-Path $dist "teamproject_github_$stamp.zip"
+if (Test-Path $zip) { Remove-Item -Force $zip }   # 같은 분에 다시 묶으면 덮어쓰기
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::CreateFromDirectory($stage, $zip)
 

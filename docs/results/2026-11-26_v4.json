@@ -1,0 +1,550 @@
+[
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "위탁업체점검_20261118.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S01_점검현황_전체조회_다운로드_20261126_110354_20261126_111954",
+    "scenario": "S01",
+    "name": "점검현황_전체조회_다운로드",
+    "set": 1,
+    "inputs": {
+      "inquiry-date": "2026-11-18"
+    },
+    "expect": "파일 위탁업체점검_20261118.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "위탁업체점검_20261101.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S01_점검현황_전체조회_다운로드_20261126_110354_20261126_111957",
+    "scenario": "S01",
+    "name": "점검현황_전체조회_다운로드",
+    "set": 2,
+    "inputs": {
+      "inquiry-date": "2026-11-01"
+    },
+    "expect": "파일 위탁업체점검_20261101.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "위탁업체점검_20261015.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S01_점검현황_전체조회_다운로드_20261126_110354_20261126_112015",
+    "scenario": "S01",
+    "name": "점검현황_전체조회_다운로드",
+    "set": 3,
+    "inputs": {
+      "inquiry-date": "2026-10-15"
+    },
+    "expect": "파일 위탁업체점검_20261015.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "위탁업체점검_20261118.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S02_점검현황_업체구분별_다운로드_20261126_110402_20261126_112033",
+    "scenario": "S02",
+    "name": "점검현황_업체구분별_다운로드",
+    "set": 1,
+    "inputs": {
+      "inquiry-date": "2026-11-18",
+      "vendor-category": "IT"
+    },
+    "expect": "파일 위탁업체점검_20261118.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "위탁업체점검_20261110.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S02_점검현황_업체구분별_다운로드_20261126_110402_20261126_112048",
+    "scenario": "S02",
+    "name": "점검현황_업체구분별_다운로드",
+    "set": 2,
+    "inputs": {
+      "inquiry-date": "2026-11-10",
+      "vendor-category": "콜센터"
+    },
+    "expect": "파일 위탁업체점검_20261110.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "위탁업체점검_20261031.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S02_점검현황_업체구분별_다운로드_20261126_110402_20261126_112052",
+    "scenario": "S02",
+    "name": "점검현황_업체구분별_다운로드",
+    "set": 3,
+    "inputs": {
+      "inquiry-date": "2026-10-31",
+      "vendor-category": "보안"
+    },
+    "expect": "파일 위탁업체점검_20261031.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "위탁업체점검_20261118.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S03_점검현황_상태별_다운로드_20261126_110410_20261126_112058",
+    "scenario": "S03",
+    "name": "점검현황_상태별_다운로드",
+    "set": 1,
+    "inputs": {
+      "inquiry-date": "2026-11-18",
+      "vendor-status": "적합"
+    },
+    "expect": "파일 위탁업체점검_20261118.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "위탁업체점검_20261105.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S03_점검현황_상태별_다운로드_20261126_110410_20261126_112110",
+    "scenario": "S03",
+    "name": "점검현황_상태별_다운로드",
+    "set": 2,
+    "inputs": {
+      "inquiry-date": "2026-11-05",
+      "vendor-status": "보완 필요"
+    },
+    "expect": "파일 위탁업체점검_20261105.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": 8,
+    "reason": "no_result",
+    "note": "",
+    "downloads": [],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S03_점검현황_상태별_다운로드_20261126_110410_20261126_112122",
+    "scenario": "S03",
+    "name": "점검현황_상태별_다운로드",
+    "set": 3,
+    "inputs": {
+      "inquiry-date": "2020-01-01",
+      "vendor-status": "적합"
+    },
+    "expect": "결과 0건에서 멈춤"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "일별거래집계_20261101_20261118.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S04_거래집계_기간_다운로드_20261126_110418_20261126_112141",
+    "scenario": "S04",
+    "name": "거래집계_기간_다운로드",
+    "set": 1,
+    "inputs": {
+      "start-date": "2026-11-01",
+      "end-date": "2026-11-18"
+    },
+    "expect": "파일 일별거래집계_20261101_20261118.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "일별거래집계_20261001_20261031.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S04_거래집계_기간_다운로드_20261126_110418_20261126_112144",
+    "scenario": "S04",
+    "name": "거래집계_기간_다운로드",
+    "set": 2,
+    "inputs": {
+      "start-date": "2026-10-01",
+      "end-date": "2026-10-31"
+    },
+    "expect": "파일 일별거래집계_20261001_20261031.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "일별거래집계_20260901_20260930.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S04_거래집계_기간_다운로드_20261126_110418_20261126_112202",
+    "scenario": "S04",
+    "name": "거래집계_기간_다운로드",
+    "set": 3,
+    "inputs": {
+      "start-date": "2026-09-01",
+      "end-date": "2026-09-30"
+    },
+    "expect": "파일 일별거래집계_20260901_20260930.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "일별거래집계_20261101_20261118.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S05_거래집계_상품별_다운로드_20261126_110426_20261126_112205",
+    "scenario": "S05",
+    "name": "거래집계_상품별_다운로드",
+    "set": 1,
+    "inputs": {
+      "start-date": "2026-11-01",
+      "end-date": "2026-11-18",
+      "product-type": "주식"
+    },
+    "expect": "파일 일별거래집계_20261101_20261118.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "일별거래집계_20261001_20261015.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S05_거래집계_상품별_다운로드_20261126_110426_20261126_112218",
+    "scenario": "S05",
+    "name": "거래집계_상품별_다운로드",
+    "set": 2,
+    "inputs": {
+      "start-date": "2026-10-01",
+      "end-date": "2026-10-15",
+      "product-type": "채권"
+    },
+    "expect": "파일 일별거래집계_20261001_20261015.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "일별거래집계_20260901_20260905.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S05_거래집계_상품별_다운로드_20261126_110426_20261126_112221",
+    "scenario": "S05",
+    "name": "거래집계_상품별_다운로드",
+    "set": 3,
+    "inputs": {
+      "start-date": "2026-09-01",
+      "end-date": "2026-09-05",
+      "product-type": "펀드"
+    },
+    "expect": "파일 일별거래집계_20260901_20260905.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "일별거래집계_20261117_20261117.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S06_거래집계_하루_다운로드_20261126_110453_20261126_112239",
+    "scenario": "S06",
+    "name": "거래집계_하루_다운로드",
+    "set": 1,
+    "inputs": {
+      "start-date": "2026-11-17",
+      "end-date": "2026-11-17"
+    },
+    "expect": "파일 일별거래집계_20261117_20261117.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "일별거래집계_20261116_20261116.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S06_거래집계_하루_다운로드_20261126_110453_20261126_112243",
+    "scenario": "S06",
+    "name": "거래집계_하루_다운로드",
+    "set": 2,
+    "inputs": {
+      "start-date": "2026-11-16",
+      "end-date": "2026-11-16"
+    },
+    "expect": "파일 일별거래집계_20261116_20261116.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": 8,
+    "reason": "no_result",
+    "note": "일요일이라 거래 없음",
+    "downloads": [],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S06_거래집계_하루_다운로드_20261126_110453_20261126_112255",
+    "scenario": "S06",
+    "name": "거래집계_하루_다운로드",
+    "set": 3,
+    "inputs": {
+      "start-date": "2026-11-15",
+      "end-date": "2026-11-15"
+    },
+    "expect": "결과 0건에서 멈춤"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S07_점검결과_등록_20261126_110521_20261126_112312",
+    "scenario": "S07",
+    "name": "점검결과_등록",
+    "set": 1,
+    "inputs": {
+      "vendor-select": "샘플IT서비스",
+      "inspection-date": "2026-11-18",
+      "inspection_result": "적합"
+    },
+    "expect": "메시지 '샘플IT서비스, 2026-11-18, 적합'"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S07_점검결과_등록_20261126_110521_20261126_112328",
+    "scenario": "S07",
+    "name": "점검결과_등록",
+    "set": 2,
+    "inputs": {
+      "vendor-select": "가나다시스템",
+      "inspection-date": "2026-11-17",
+      "inspection_result": "보완 필요"
+    },
+    "expect": "메시지 '가나다시스템, 2026-11-17, 보완 필요'"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S07_점검결과_등록_20261126_110521_20261126_112348",
+    "scenario": "S07",
+    "name": "점검결과_등록",
+    "set": 3,
+    "inputs": {
+      "vendor-select": "든든보안",
+      "inspection-date": "2026-11-16",
+      "inspection_result": "부적합"
+    },
+    "expect": "메시지 '든든보안, 2026-11-16, 부적합'"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S08_점검결과_비고포함_등록_20261126_110528_20261126_112358",
+    "scenario": "S08",
+    "name": "점검결과_비고포함_등록",
+    "set": 1,
+    "inputs": {
+      "vendor-select": "하늘콜센터",
+      "inspection-date": "2026-11-18",
+      "inspection_result": "보완 필요",
+      "inspection-note": "녹취 보관 점검표 미제출"
+    },
+    "expect": "메시지 '하늘콜센터, 2026-11-18, 보완 필요'"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S08_점검결과_비고포함_등록_20261126_110528_20261126_112408",
+    "scenario": "S08",
+    "name": "점검결과_비고포함_등록",
+    "set": 2,
+    "inputs": {
+      "vendor-select": "바른고객센터",
+      "inspection-date": "2026-11-17",
+      "inspection_result": "보완 필요",
+      "inspection-note": "상담 품질 평가 누락"
+    },
+    "expect": "메시지 '바른고객센터, 2026-11-17, 보완 필요'"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S08_점검결과_비고포함_등록_20261126_110528_20261126_112418",
+    "scenario": "S08",
+    "name": "점검결과_비고포함_등록",
+    "set": 3,
+    "inputs": {
+      "vendor-select": "빠른인쇄",
+      "inspection-date": "2026-11-16",
+      "inspection_result": "적합",
+      "inspection-note": "특이사항 없음"
+    },
+    "expect": "메시지 '빠른인쇄, 2026-11-16, 적합'"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "위탁업체점검_20261118.csv",
+      "일별거래집계_20261101_20261118.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S09_점검현황과_거래집계_연속다운로드_20261126_110541_20261126_112435",
+    "scenario": "S09",
+    "name": "점검현황과_거래집계_연속다운로드",
+    "set": 1,
+    "inputs": {
+      "inquiry-date": "2026-11-18",
+      "start-date": "2026-11-01",
+      "end-date": "2026-11-18"
+    },
+    "expect": "파일 위탁업체점검_20261118.csv, 일별거래집계_20261101_20261118.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "위탁업체점검_20261031.csv",
+      "일별거래집계_20261001_20261031.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S09_점검현황과_거래집계_연속다운로드_20261126_110541_20261126_112454",
+    "scenario": "S09",
+    "name": "점검현황과_거래집계_연속다운로드",
+    "set": 2,
+    "inputs": {
+      "inquiry-date": "2026-10-31",
+      "start-date": "2026-10-01",
+      "end-date": "2026-10-31"
+    },
+    "expect": "파일 위탁업체점검_20261031.csv, 일별거래집계_20261001_20261031.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "위탁업체점검_20260930.csv",
+      "일별거래집계_20260901_20260930.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S09_점검현황과_거래집계_연속다운로드_20261126_110541_20261126_112458",
+    "scenario": "S09",
+    "name": "점검현황과_거래집계_연속다운로드",
+    "set": 3,
+    "inputs": {
+      "inquiry-date": "2026-09-30",
+      "start-date": "2026-09-01",
+      "end-date": "2026-09-30"
+    },
+    "expect": "파일 위탁업체점검_20260930.csv, 일별거래집계_20260901_20260930.csv"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "위탁업체점검_20261118.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S10_점검결과_등록후_현황다운로드_20261126_110622_20261126_112512",
+    "scenario": "S10",
+    "name": "점검결과_등록후_현황다운로드",
+    "set": 1,
+    "inputs": {
+      "vendor-select": "다온시설관리",
+      "inspection-date": "2026-11-18",
+      "inspection_result": "부적합",
+      "inquiry-date": "2026-11-18",
+      "vendor-status": "부적합"
+    },
+    "expect": "파일 위탁업체점검_20261118.csv / 메시지 '다온시설관리, 2026-11-18, 부적합'"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "위탁업체점검_20261117.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S10_점검결과_등록후_현황다운로드_20261126_110622_20261126_112538",
+    "scenario": "S10",
+    "name": "점검결과_등록후_현황다운로드",
+    "set": 2,
+    "inputs": {
+      "vendor-select": "새솔환경",
+      "inspection-date": "2026-11-17",
+      "inspection_result": "보완 필요",
+      "inquiry-date": "2026-11-17",
+      "vendor-status": "보완 필요"
+    },
+    "expect": "파일 위탁업체점검_20261117.csv / 메시지 '새솔환경, 2026-11-17, 보완 필요'"
+  },
+  {
+    "ok": true,
+    "stopped_at": null,
+    "reason": null,
+    "note": "",
+    "downloads": [
+      "위탁업체점검_20261116.csv"
+    ],
+    "run_dir": "C:\\Users\\dudgn\\Desktop\\바이브코딩\\teamproject\\runs\\eval_S10_점검결과_등록후_현황다운로드_20261126_110622_20261126_112605",
+    "scenario": "S10",
+    "name": "점검결과_등록후_현황다운로드",
+    "set": 3,
+    "inputs": {
+      "vendor-select": "지킴이경비",
+      "inspection-date": "2026-11-16",
+      "inspection_result": "적합",
+      "inquiry-date": "2026-11-16",
+      "vendor-status": "적합"
+    },
+    "expect": "파일 위탁업체점검_20261116.csv / 메시지 '지킴이경비, 2026-11-16, 적합'"
+  }
+]

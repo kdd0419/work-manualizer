@@ -86,9 +86,14 @@ def find_element(page: Page, locator: dict, strategies=("id", "label", "text", "
 
 
 def settle(page: Page) -> None:
-    """동작 후 페이지 이동·로딩이 끝날 때까지 잠깐 기다린다."""
+    """동작 후 페이지 이동·로딩이 끝날 때까지 잠깐 기다린다.
+
+    화면 구조(DOM)가 준비될 때까지는 기다리고, 글꼴 같은 외부 파일까지 다 받는 'load'는 짧게만 기다린다.
+    (인터넷이 느릴 때 외부 글꼴 때문에 30초씩 멈추던 문제 방지)
+    """
     try:
-        page.wait_for_load_state("load", timeout=10000)
+        page.wait_for_load_state("domcontentloaded", timeout=10000)
+        page.wait_for_load_state("load", timeout=3000)
     except Exception:
         pass
     page.wait_for_timeout(150)

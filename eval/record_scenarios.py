@@ -20,7 +20,7 @@ def make_script(scenario: dict, login: dict):
         page.fill("#login-id", login["id"])
         page.fill("#login-password", login["password"])
         page.click("#login-button")
-        page.wait_for_load_state()
+        page.wait_for_load_state("domcontentloaded")
         for act in scenario["actions"]:
             if "click" in act:
                 page.click(act["click"])
@@ -36,7 +36,7 @@ def make_script(scenario: dict, login: dict):
             elif "download" in act:
                 with page.expect_download():
                     page.click(act["download"])
-            page.wait_for_load_state()
+            page.wait_for_load_state("domcontentloaded")
             page.wait_for_timeout(150)   # 사람처럼 약간 쉬어 이벤트가 섞이지 않게
     return run
 

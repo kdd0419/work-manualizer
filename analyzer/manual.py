@@ -8,10 +8,12 @@
 """
 import argparse
 import os
+from datetime import datetime
 from pathlib import Path
 
-from .common import (MANUALS_DIR, fill_prompt, load_prompt, now_iso, read_json,
+from .common import (MANUALS_DIR, RECORDINGS_DIR, fill_prompt, load_prompt, now_iso, read_json,
                      resolve_recording)
+from .josa import fix_josa
 
 
 def load_answers(rec_dir: Path) -> list[dict]:
@@ -71,19 +73,42 @@ def _bullets(items: list[str], empty: str = "- (없음)") -> str:
     return "\n".join(f"- {i}" for i in items) if items else empty
 
 
-def render(data: dict, content: dict, rec_dir: Path, answers: list[dict]) -> str:
+def render(data: dict, content: dict, rec_dir: Path, answers: list[dict], overview: dict | None = None) -> str:
     """매뉴얼 마크다운을 만든다. 처리 순서와 스크린샷은 코드가 직접 채운다."""
     rec_id = data["recording_id"]
     shot_base = os.path.relpath(rec_dir, MANUALS_DIR).replace("\\", "/")
-    guess = " *(추정)*" if content.get("purpose_is_guess") else ""
+    task = (overview or {}).get("task", {})
+    purpose, is_guess = content.get("purpose", ""), content.get("purpose_is_guess")
+    if is_guess and task.get("purpose"):   # 규칙 기반 '추정' 목적보다 AI 개요의 목적이 낫다
+        purpose, is_guess = task["purpose"], False
+    guess = " *(추정)*" if is_guess else ""
     lines = [
         f"# {content.get('title') or rec_id}",
         "",
-        f"> 녹화: `{rec_id}` · 생성: {now_iso()} · 해석: {data.get('model', '')}",
+        f"> 녹화: `{rec_id}` · 생성: {now_iso()} · 해석: {data.get('model', '')}"
+        + (f" · 개요: {overview.get('model', '')}" if overview else ""),
         "",
         "## 목적",
-        f"{content.get('purpose', '')}{guess}",
+        f"{purpose}{guess}",
         "",
+    ]
+    if overview:
+        info = []
+        if task.get("inputs"):
+            info.append(f"**매번 정하는 값**: {', '.join(task['inputs'])}")
+        if task.get("outputs"):
+            info.append(f"**결과물**: {', '.join(task['outputs'])}")
+        if task.get("when"):
+            info.append(f"**하는 때**: {task['when']}")
+        if info:
+            lines += ["## 업무 개요", _bullets(info), ""]
+        if overview.get("screens"):
+            lines.append("## 화면 설명")
+            for sc in overview["screens"]:
+                rng = f"{sc['steps'][0]}단계" if len(sc["steps"]) == 1 else f"{sc['steps'][0]}~{sc['steps'][-1]}단계"
+                lines.append(f"- **{sc['name']}** ({rng}) — {sc['description']}")
+            lines.append("")
+    lines += [
         "## 준비물",
         _bullets(content.get("prerequisites")),
         "",
@@ -113,6 +138,42 @@ def render(data: dict, content: dict, rec_dir: Path, answers: list[dict]) -> str
     return "\n".join(lines)
 
 
+MAX_HISTORY = 20   # 녹화 하나당 보관할 이전 버전 수
+
+
+def split_blocks(md: str) -> list[str]:
+    """매뉴얼을 고칠 수 있는 조각으로 나눈다: 제목 / 각 '## 섹션' / 번호 단계 하나하나.
+
+    번호 목록 한 줄(1. …)은 어느 제목 아래에 있든 각각 한 조각 — '처리 순서' 제목을 지우거나 바꿔도
+    단계들이 한 덩어리로 합쳐지지 않는다. 조각을 그대로 이어 붙이면 원래 마크다운과 같다.
+    """
+    import re
+    blocks: list[str] = []
+    cur: list[str] = []
+    for line in md.splitlines(keepends=True):
+        if (line.startswith("## ") or re.match(r"^\d+\. ", line)) and cur:
+            blocks.append("".join(cur))
+            cur = []
+        cur.append(line)
+    if cur:
+        blocks.append("".join(cur))
+    return blocks
+
+
+def backup_manual(rec_id: str, reason: str = "") -> Path | None:
+    """지금 매뉴얼을 recordings/<id>/manual_history/<시각>.md 로 보관한다 (없으면 아무것도 안 함)."""
+    src = MANUALS_DIR / f"{rec_id}.md"
+    if not src.exists():
+        return None
+    d = RECORDINGS_DIR / rec_id / "manual_history"
+    d.mkdir(parents=True, exist_ok=True)
+    dest = d / f"{datetime.now():%Y%m%d_%H%M%S_%f}.md"
+    dest.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+    for old in sorted(d.glob("*.md"))[:-MAX_HISTORY]:
+        old.unlink()
+    return dest
+
+
 def make_manual(rec: str | Path, use_ai: bool = True, prompt_version: str = "v1",
                 log=print) -> Path:
     """매뉴얼을 만들어 manuals/<id>.md에 저장하고 경로를 돌려준다."""
@@ -138,9 +199,22 @@ def make_manual(rec: str | Path, use_ai: bool = True, prompt_version: str = "v1"
     else:
         content = _rule_based(data, answers)
 
+    # 업무·화면 개요 (없으면 지금 만든다 — 예전에 해석한 녹화)
+    ov_path = rec_dir / "overview.json"
+    if not ov_path.exists():
+        from .overview import make_overview
+        try:
+            make_overview(rec_dir, use_ai=use_ai, log=log)
+        except Exception as e:
+            log(f"업무 개요를 만들지 못했습니다: {str(e).splitlines()[0][:150]}")
+    overview = read_json(ov_path) if ov_path.exists() else None
+
     MANUALS_DIR.mkdir(exist_ok=True)
     path = MANUALS_DIR / f"{data['recording_id']}.md"
-    path.write_text(render(data, content, rec_dir, answers), encoding="utf-8")
+    if backup_manual(data["recording_id"], "다시 생성 전"):
+        log("기존 매뉴얼을 이전 버전으로 보관했습니다 (관리 화면의 '↶ 이전 버전'으로 되돌릴 수 있음)")
+    path.write_text(fix_josa(render(data, content, rec_dir, answers, overview)), encoding="utf-8")
+    (rec_dir / "manual_edited.json").unlink(missing_ok=True)   # 새로 만들었으니 '직접 수정됨' 표시 해제
     log(f"매뉴얼 → {path}")
     return path
 
